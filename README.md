@@ -1,1 +1,1 @@
-# QueryGen-AI
+# S5-QueryGen-AI

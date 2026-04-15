@@ -10,8 +10,12 @@ const recoveryRoutes = require('./src/routes/recovery');
 
 const app = express();
 
-// Middlewares globais
-app.use(cors());           // permite o Flutter acessar
+app.use(cors({
+  origin: true, // permite qualquer origem em desenvolvimento
+  methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+}));    
 app.use(express.json());   // lê JSON no body das requisições
 
 // Rotas

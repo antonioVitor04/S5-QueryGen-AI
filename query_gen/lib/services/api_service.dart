@@ -1,0 +1,114 @@
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
+import 'auth_service.dart';
+
+class ApiService {
+  // kIsWeb é true quando rodando no navegador
+  static String get _base => kIsWeb
+      ? 'http://localhost:3000'
+      : 'http://10.0.2.2:3000'; 
+      
+
+  final _auth = AuthService();
+
+  Map<String, String> get _jsonHeaders => {
+        'Content-Type': 'application/json',
+      };
+
+  Future<Map<String, String>> get _authHeaders async {
+    final token = await _auth.getToken();
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
+  }
+
+  Map<String, dynamic> _parse(http.Response res) {
+    final data = jsonDecode(res.body);
+    if (res.statusCode >= 400) {
+      throw Exception(
+          (data is Map ? data['erro'] : null) ?? 'Erro desconhecido');
+    }
+    return data as Map<String, dynamic>;
+  }
+
+  List<dynamic> _parseList(http.Response res) {
+    if (res.statusCode >= 400) {
+      final data = jsonDecode(res.body);
+      throw Exception(
+          (data is Map ? data['erro'] : null) ?? 'Erro desconhecido');
+    }
+    return jsonDecode(res.body) as List<dynamic>;
+  }
+
+  Future<Map<String, dynamic>> register(String email, String senha) async {
+    final res = await http.post(
+      Uri.parse('$_base/auth/register'),
+      headers: _jsonHeaders,
+      body: jsonEncode({'email': email, 'senha': senha}),
+    );
+    return _parse(res);
+  }
+
+  Future<Map<String, dynamic>> login(String email, String senha) async {
+    final res = await http.post(
+      Uri.parse('$_base/auth/login'),
+      headers: _jsonHeaders,
+      body: jsonEncode({'email': email, 'senha': senha}),
+    );
+    return _parse(res);
+  }
+
+  Future<Map<String, dynamic>> gerarScript(String pergunta) async {
+    final res = await http.post(
+      Uri.parse('$_base/api/gerar-script'),
+      headers: await _authHeaders,
+      body: jsonEncode({'pergunta': pergunta}),
+    );
+    return _parse(res);
+  }
+
+  Future<List<dynamic>> getHistorico() async {
+    final res = await http.get(
+      Uri.parse('$_base/api/historico'),
+      headers: await _authHeaders,
+    );
+    return _parseList(res);
+  }
+
+  Future<void> deletarHistorico(int id) async {
+    await http.delete(
+      Uri.parse('$_base/api/historico/$id'),
+      headers: await _authHeaders,
+    );
+  }
+
+  Future<void> solicitarRecuperacao(String email) async {
+    final res = await http.post(
+      Uri.parse('$_base/recovery/solicitar'),
+      headers: _jsonHeaders,
+      body: jsonEncode({'email': email}),
+    );
+    _parse(res);
+  }
+
+  Future<Map<String, dynamic>> verificarToken(
+      String email, String token) async {
+    final res = await http.post(
+      Uri.parse('$_base/recovery/verificar'),
+      headers: _jsonHeaders,
+      body: jsonEncode({'email': email, 'token': token}),
+    );
+    return _parse(res);
+  }
+
+  Future<void> redefinirSenha(int tokenId, String novaSenha) async {
+    final res = await http.post(
+      Uri.parse('$_base/recovery/redefinir'),
+      headers: _jsonHeaders,
+      body: jsonEncode({'tokenId': tokenId, 'novaSenha': novaSenha}),
+    );
+    _parse(res);
+  }
+}

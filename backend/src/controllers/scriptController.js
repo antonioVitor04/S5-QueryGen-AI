@@ -2,7 +2,6 @@ const { buildDictionaryText } = require('../sap/dictionary');
 const { buildSQL } = require('../sap/sqlBuilder');
 const db = require('../db/connection');
 
-// System prompt — fica aqui no controller, não no Flutter
 const SYSTEM_PROMPT = `Você é um assistente especialista em SAP e SQL.
 Sua única função é interpretar perguntas de negócio em português
 e retornar um JSON estruturado para geração de queries SQL.
@@ -32,66 +31,69 @@ FORMATO DE RESPOSTA:
 async function gerarScript(req, res) {
   try {
     const { pergunta } = req.body;
-    const userId = req.user.id; // vem do middleware JWT
+    const userId = req.user.id;
 
     if (!pergunta || pergunta.trim() === '') {
       return res.status(400).json({ erro: 'Pergunta não pode ser vazia' });
     }
 
-    // Injeta o dicionário no system prompt
     const systemComDicionario = SYSTEM_PROMPT.replace(
       '{{DICIONARIO}}',
       buildDictionaryText()
     );
 
-    // Chama a Claude API
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY,   // <-- vem do .env
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-haiku-4-5-20251001',
         max_tokens: 1000,
-        system: systemComDicionario,         // <-- aqui vai o prompt
+        system: systemComDicionario,
         messages: [
-          { role: 'user', content: pergunta } // <-- aqui vai a pergunta do usuário
+          { role: 'user', content: pergunta }
         ]
       })
     });
 
     if (!response.ok) {
+      const erroDetalhado = await response.json();
+      console.error('Erro da Claude API:', JSON.stringify(erroDetalhado, null, 2));
       throw new Error(`Erro na Claude API: ${response.status}`);
     }
 
     const data = await response.json();
     const textoResposta = data.content[0].text;
+    console.log('Resposta da IA:', textoResposta);
 
-    // Parse do JSON retornado pela IA
     let iaJson;
-    try {
-      iaJson = JSON.parse(textoResposta);
-    } catch {
-      throw new Error('A IA não retornou um JSON válido');
-    }
+try {
+  // Remove ```json, ``` e espaços extras que a IA às vezes coloca
+  const textoLimpo = textoResposta
+    .replace(/```json/g, '')
+    .replace(/```/g, '')
+    .trim();
 
-    // Verifica se a IA disse que não tem tabela
+  iaJson = JSON.parse(textoLimpo);
+} catch {
+  console.error('IA não retornou JSON válido:', textoResposta);
+  throw new Error('A IA não retornou um JSON válido');
+}
+
     if (iaJson.erro) {
       return res.status(400).json({ erro: iaJson.erro });
     }
 
-    // Monta o SQL a partir do JSON
     const sql = buildSQL(iaJson);
 
-    // Salva no histórico do MySQL
     await db.query(
       'INSERT INTO historico (user_id, pergunta, sql_gerado) VALUES (?, ?, ?)',
       [userId, pergunta, sql]
     );
 
-    // Retorna pro Flutter
     return res.json({
       sql,
       descricao: iaJson.descricao,

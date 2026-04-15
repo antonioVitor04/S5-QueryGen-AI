@@ -1,18 +1,32 @@
 const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
 });
 
+transporter.verify((error) => {
+  if (error) {
+    console.error('Erro no email service:', error.message);
+  } else {
+    console.log('Email service conectado e pronto');
+  }
+});
+
 async function enviarEmailRecuperacao(emailDestino, token) {
+  console.log('Enviando email para:', emailDestino);
+  console.log('Token gerado:', token);
+
   await transporter.sendMail({
-    from: `"SAP AI Scripts" <${process.env.EMAIL_USER}>`,
+    from: `"QueryGen AI" <${process.env.EMAIL_USER}>`,
     to: emailDestino,
     subject: 'Código de recuperação de conta',
+    text: `Seu código de verificação é: ${token}`,
     html: `
       <div style="font-family: sans-serif; max-width: 400px; margin: auto;">
         <h2>Recuperação de conta</h2>
@@ -29,6 +43,8 @@ async function enviarEmailRecuperacao(emailDestino, token) {
       </div>
     `,
   });
+
+  console.log('Email enviado com sucesso para:', emailDestino);
 }
 
 module.exports = { enviarEmailRecuperacao };

@@ -1,46 +1,73 @@
-// Recebe o objeto JSON que a Claude retornou e monta um SELECT válido
+const { getTabelaBanco } = require('./dictionary');
+
 function buildSQL(iaJson) {
-  const { tabelas, campos, filtros, join } = iaJson;
+  const { tabelas, campos, filtros, joins } = iaJson;
 
   if (!tabelas || tabelas.length === 0) {
-    throw new Error("Nenhuma tabela identificada na resposta da IA");
+    throw new Error('Nenhuma tabela identificada');
   }
 
-  // SELECT com os campos pedidos (ou * se não especificado)
-  const selectCampos = campos && campos.length > 0
-    ? campos.join(', ')
-    : tabelas.map(t => `${t}.*`).join(', ');
+  // Troca nomes SAP pelos nomes reais do banco
+  const tabelasReais = tabelas.map(t => {
+    const real = getTabelaBanco(t);
+    if (!real) throw new Error(`Tabela ${t} não existe no banco`);
+    return { sap: t, real };
+  });
 
-  // FROM com as tabelas
-  let sql = `SELECT ${selectCampos}\nFROM ${tabelas[0]}`;
-
-  // JOIN se houver mais de uma tabela
-  if (tabelas.length > 1 && join) {
-    for (let i = 1; i < tabelas.length; i++) {
-      sql += `\nJOIN ${tabelas[i]} ON ${join}`;
+  // Troca prefixos SAP pelos reais nos campos
+  function traduzirCampo(campo) {
+    if (!campo || typeof campo !== 'string') return campo;
+    for (const { sap, real } of tabelasReais) {
+      if (campo.startsWith(`${sap}.`)) {
+        return campo.replace(`${sap}.`, `${real}.`);
+      }
     }
+    return campo;
   }
 
-  // WHERE com os filtros de período
+  // SELECT
+  const selectCampos = campos && campos.length > 0
+    ? campos.map(traduzirCampo).join(', ')
+    : tabelasReais.map(t => `${t.real}.*`).join(', ');
+
+  let sql = `SELECT ${selectCampos}\nFROM ${tabelasReais[0].real}`;
+
+  // JOINs — aceita array de objetos ou string simples
+  if (joins && Array.isArray(joins)) {
+    for (const j of joins) {
+      const tabelaReal = getTabelaBanco(j.tabela) ?? j.tabela;
+      const condicao   = traduzirCampo(j.on);
+      sql += `\nJOIN ${tabelaReal} ON ${condicao}`;
+    }
+  } else if (typeof joins === 'string' && joins) {
+    sql += `\nJOIN ${tabelasReais[1]?.real ?? ''} ON ${traduzirCampo(joins)}`;
+  }
+
+  // WHERE
   const wheres = [];
 
   if (filtros?.periodo_dias && filtros?.campo_data) {
+    const campo = traduzirCampo(filtros.campo_data);
     wheres.push(
-      `${filtros.campo_data} >= DATE_SUB(NOW(), INTERVAL ${filtros.periodo_dias} DAY)`
+      `${campo} >= DATE_SUB(NOW(), INTERVAL ${filtros.periodo_dias} DAY)`
     );
   }
 
-  if (filtros?.campo_data && filtros?.data_inicio && filtros?.data_fim) {
+  if (filtros?.data_inicio && filtros?.data_fim && filtros?.campo_data) {
+    const campo = traduzirCampo(filtros.campo_data);
     wheres.push(
-      `${filtros.campo_data} BETWEEN '${filtros.data_inicio}' AND '${filtros.data_fim}'`
+      `${campo} BETWEEN '${filtros.data_inicio}' AND '${filtros.data_fim}'`
     );
+  }
+
+  if (filtros?.where_extra && typeof filtros.where_extra === 'string') {
+    wheres.push(traduzirCampo(filtros.where_extra));
   }
 
   if (wheres.length > 0) {
     sql += `\nWHERE ${wheres.join('\n  AND ')}`;
   }
 
-  // Limite de segurança para não explodir o banco
   sql += '\nLIMIT 1000';
 
   return sql;

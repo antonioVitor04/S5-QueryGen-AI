@@ -15,18 +15,27 @@ REGRAS OBRIGATÓRIAS:
 - Se a pergunta não puder ser respondida com as tabelas disponíveis,
   retorne exatamente: {"erro": "Tabela não disponível para essa consulta"}
 
-FORMATO DE RESPOSTA:
+FORMATO DE RESPOSTA (siga exatamente):
 {
   "intencao": "consulta",
-  "tabelas": ["AFKO"],
-  "campos": ["AFKO.AUFNR", "AFKO.GAMNG"],
+  "tabelas": ["EKKO", "EKPO", "LFA1"],
+  "campos": ["EKKO.EBELN", "EKKO.LIFNR", "LFA1.NAME1", "EKPO.MENGE"],
+  "joins": [
+    { "tabela": "EKPO", "on": "EKKO.EBELN = EKPO.EBELN" },
+    { "tabela": "LFA1", "on": "EKKO.LIFNR = LFA1.LIFNR" }
+  ],
   "filtros": {
     "periodo_dias": 90,
-    "campo_data": "AFKO.GSTRI"
+    "campo_data": "EKKO.BEDAT"
   },
-  "join": null,
-  "descricao": "Volume de produção dos últimos 3 meses"
-}`;
+  "descricao": "Pedidos de compra abertos dos últimos 90 dias"
+}
+
+IMPORTANTE:
+- "joins" é sempre um array de objetos com "tabela" e "on"
+- "on" é sempre uma string com a condição de join
+- Nunca coloque objetos dentro de "on", apenas strings
+- A primeira tabela do array "tabelas" é sempre a tabela principal do FROM`;
 
 async function gerarScript(req, res) {
   try {

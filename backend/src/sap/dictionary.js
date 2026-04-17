@@ -1,8 +1,12 @@
 const sapDictionary = {
-  // ── MATERIAIS E ESTOQUE ─────────────────────────────────
+
   MARA: {
+    tabela_banco: 'sap_mara',
     descricao: "Dados gerais do material",
-    palavrasChave: ["material", "produto", "cadastro de material"],
+    palavrasChave: [
+      "material", "produto", "cadastro de material", "item",
+      "tipo de material", "grupo de mercadorias"
+    ],
     campos: {
       MATNR: "Código do material",
       MATKL: "Grupo de mercadorias",
@@ -10,221 +14,224 @@ const sapDictionary = {
       MEINS: "Unidade de medida base",
       MAKTX: "Descrição do material",
       NTGEW: "Peso líquido",
-      ERSDA: "Data de criação"
+      ERSDA: "Data de criação",
     }
   },
-  MAKT: {
-    descricao: "Descrições de materiais",
-    palavrasChave: ["descrição de material", "nome do produto"],
-    campos: {
-      MATNR: "Código do material",
-      SPRAS: "Idioma",
-      MAKTX: "Descrição do material"
-    }
-  },
+
   MARD: {
+    tabela_banco: 'sap_mard',
     descricao: "Estoque por centro e depósito",
-    palavrasChave: ["estoque", "saldo", "quantidade em estoque"],
+    palavrasChave: [
+      "saldo de estoque", "quantidade em estoque",
+      "estoque por depósito", "posição de estoque", "inventário"
+    ],
     campos: {
       MATNR: "Código do material",
       WERKS: "Centro",
       LGORT: "Depósito",
-      LABST: "Estoque de uso livre"
-    }
-  },
-  MARC: {
-    descricao: "Dados de MRP do material por centro",
-    palavrasChave: ["MRP", "planejamento", "estoque mínimo"],
-    campos: {
-      MATNR: "Código do material",
-      WERKS: "Centro",
-      DISPO: "Controlador MRP",
-      DISMM: "Tipo de MRP",
-      MINBE: "Estoque mínimo",
-      EISBE: "Estoque de segurança",
-      LGPRO: "Depósito de produção"
+      LABST: "Estoque de uso livre",
     }
   },
 
-  // ── MOVIMENTAÇÃO ───────────────────────────────────────
   MSEG: {
+    tabela_banco: 'sap_mseg',
     descricao: "Movimentações de estoque",
-    palavrasChave: ["movimentação", "entrada", "saída", "transferência"],
+    palavrasChave: [
+      "movimentação de estoque", "entrada de material", "saída de material",
+      "transferência", "consumo", "documento de material", "baixa"
+    ],
     campos: {
-      MBLNR: "Número do documento",
-      ZEILE: "Item do documento",
+      MBLNR: "Número do documento de material",
+      ZEILE: "Posição do documento",
       BWART: "Tipo de movimento",
       MATNR: "Código do material",
       WERKS: "Centro",
       LGORT: "Depósito",
       MENGE: "Quantidade",
-      DMBTR: "Valor",
-      BUDAT: "Data de lançamento"
+      DMBTR: "Valor em moeda local",
+      BUDAT: "Data de lançamento",
     }
   },
 
-  // ── PRODUÇÃO ───────────────────────────────────────────
   AFKO: {
-    descricao: "Ordens de produção - Cabeçalho",
-    palavrasChave: ["ordem de produção", "OP", "produção"],
+    tabela_banco: 'sap_afko',
+    descricao: "Ordens de produção",
+    palavrasChave: [
+      "produção", "ordem de produção", "fabricação", "manufatura",
+      "OP", "quantidade produzida", "volume de produção"
+    ],
     campos: {
       AUFNR: "Número da ordem",
-      MATNR: "Material produzido",
-      WERKS: "Centro",
-      GAMNG: "Quantidade planejada",
-      GMEIN: "Unidade",
-      GSTRI: "Início planejado",
-      GETRI: "Fim planejado",
-      GSTRS: "Início real",
-      GETRS: "Fim real",
-      AUFART: "Tipo de ordem"
-    }
-  },
-  AFPO: {
-    descricao: "Ordens de produção - Posições",
-    palavrasChave: ["posição de produção"],
-    campos: {
-      AUFNR: "Número da ordem",
-      POSNR: "Posição",
-      MATNR: "Material",
-      PSMNG: "Quantidade planejada",
-      WEMNG: "Quantidade entregue"
-    }
-  },
-  AFRU: {
-    descricao: "Confirmações de produção",
-    palavrasChave: ["confirmação", "apontamento", "produção confirmada"],
-    campos: {
-      AUFNR: "Ordem",
-      RUECK: "Número da confirmação",
-      ISMNW: "Quantidade confirmada",
-      BUDAT: "Data do apontamento"
-    }
-  },
-  RESB: {
-    descricao: "Reservas de componentes",
-    palavrasChave: ["reserva", "componente", "necessidade"],
-    campos: {
-      RSNUM: "Número da reserva",
-      AUFNR: "Ordem",
-      MATNR: "Material",
-      BDMNG: "Quantidade necessária",
-      ENMNG: "Quantidade retirada",
-      BDTER: "Data de necessidade"
+      MATNR: "Código do material",
+      WERKS: "Centro produtivo",
+      GAMNG: "Quantidade total planejada",
+      GMEIN: "Unidade de medida",
+      GSTRI: "Data de início planejada",
+      GETRI: "Data de fim planejada",
+      GSTRS: "Data de início real",
+      GETRS: "Data de fim real",
+      AUFART: "Tipo de ordem",
     }
   },
 
-  // ── VENDAS E FATURAMENTO ───────────────────────────────
-  VBAK: {
-    descricao: "Ordens de venda - Cabeçalho",
-    palavrasChave: ["ordem de venda", "pedido de venda", "OV"],
-    campos: {
-      VBELN: "Número da ordem de venda",
-      AUART: "Tipo",
-      KUNNR: "Cliente",
-      ERDAT: "Data de criação",
-      NETWR: "Valor líquido"
-    }
-  },
   VBRK: {
-    descricao: "Faturamento - Cabeçalho",
-    palavrasChave: ["faturamento", "nota fiscal", "fatura"],
+    tabela_banco: 'sap_vbrk',
+    descricao: "Faturamento — cabeçalho da fatura",
+    palavrasChave: [
+      "faturamento", "nota fiscal", "receita", "invoice",
+      "fatura", "valor faturado", "vendas"
+    ],
     campos: {
       VBELN: "Número da fatura",
+      FKART: "Tipo de fatura",
       FKDAT: "Data da fatura",
-      KUNAG: "Cliente",
+      KUNAG: "Código do cliente",
       NETWR: "Valor líquido",
-      MWSBP: "Imposto",
-      WAERK: "Moeda"
+      MWSBP: "Valor do imposto",
+      WAERK: "Moeda",
+      VKORG: "Organização de vendas",
     }
   },
+
   VBRP: {
-    descricao: "Faturamento - Posições",
-    palavrasChave: ["item faturado"],
+    tabela_banco: 'sap_vbrp',
+    descricao: "Faturamento — posições da fatura",
+    palavrasChave: [
+      "posição de fatura", "item faturado", "produto vendido",
+      "quantidade faturada", "valor por item"
+    ],
     campos: {
       VBELN: "Número da fatura",
-      MATNR: "Material",
+      POSNR: "Posição",
+      MATNR: "Código do material",
       FKIMG: "Quantidade faturada",
-      NETWR: "Valor da posição"
+      NETWR: "Valor líquido da posição",
+      WERKS: "Centro",
     }
   },
 
-  // ── COMPRAS ─────────────────────────────────────────────
   EKKO: {
-    descricao: "Pedidos de compra - Cabeçalho",
-    palavrasChave: ["pedido de compra", "PC", "compra"],
+    tabela_banco: 'sap_ekko',
+    descricao: "Pedidos de compra — cabeçalho",
+    palavrasChave: [
+      "pedido de compra", "PC", "purchase order", "PO",
+      "compra", "aquisição", "ordem de compra"
+    ],
     campos: {
-      EBELN: "Número do pedido",
-      LIFNR: "Fornecedor",
-      BEDAT: "Data do pedido"
-    }
-  },
-  EKPO: {
-    descricao: "Pedidos de compra - Posições",
-    palavrasChave: ["item de compra"],
-    campos: {
-      EBELN: "Número do pedido",
-      MATNR: "Material",
-      MENGE: "Quantidade pedida",
-      NETPR: "Preço unitário",
-      EINDT: "Data de entrega"
+      EBELN: "Número do pedido de compra",
+      BSART: "Tipo de documento de compras",
+      LIFNR: "Código do fornecedor",
+      EKORG: "Organização de compras",
+      BEDAT: "Data do pedido",
+      WAERS: "Moeda",
     }
   },
 
-  // ── CADASTROS ───────────────────────────────────────────
+  EKPO: {
+    tabela_banco: 'sap_ekpo',
+    descricao: "Pedidos de compra — posições",
+    palavrasChave: [
+      "posição de compra", "item de compra", "material comprado",
+      "fornecedor", "preço de compra", "quantidade comprada"
+    ],
+    campos: {
+      EBELN: "Número do pedido",
+      EBELP: "Posição do pedido",
+      MATNR: "Código do material",
+      WERKS: "Centro",
+      MENGE: "Quantidade do pedido",
+      NETPR: "Preço líquido",
+      WAERS: "Moeda",
+      EINDT: "Data de entrega",
+    }
+  },
+
   KNA1: {
+    tabela_banco: 'sap_kna1',
     descricao: "Cadastro de clientes",
-    palavrasChave: ["cliente"],
+    palavrasChave: [
+      "cliente", "customer", "razão social cliente",
+      "cadastro cliente", "comprador"
+    ],
     campos: {
       KUNNR: "Código do cliente",
-      NAME1: "Razão social",
+      NAME1: "Nome/Razão social",
       ORT01: "Cidade",
       REGIO: "Estado",
-      STCD1: "CNPJ"
-    }
-  },
-  LFA1: {
-    descricao: "Cadastro de fornecedores",
-    palavrasChave: ["fornecedor"],
-    campos: {
-      LIFNR: "Código do fornecedor",
-      NAME1: "Razão social",
-      ORT01: "Cidade",
-      REGIO: "Estado"
+      LAND1: "País",
+      STCD1: "CNPJ/CPF",
     }
   },
 
-  // ── MANUTENÇÃO E QUALIDADE ──────────────────────────────
-  AUFK: {
-    descricao: "Ordens de manutenção",
-    palavrasChave: ["ordem de manutenção", "OS"],
+  LFA1: {
+    tabela_banco: 'sap_lfa1',
+    descricao: "Cadastro de fornecedores",
+    palavrasChave: [
+      "fornecedor", "vendor", "supplier",
+      "cadastro fornecedor", "parceiro de compras"
+    ],
     campos: {
-      AUFNR: "Número da ordem",
-      AUART: "Tipo",
-      EQUNR: "Equipamento",
-      ERDAT: "Data de criação"
+      LIFNR: "Código do fornecedor",
+      NAME1: "Nome/Razão social",
+      ORT01: "Cidade",
+      REGIO: "Estado",
+      LAND1: "País",
+      STCD1: "CNPJ/CPF",
     }
   },
+
+  AUFK: {
+    tabela_banco: 'sap_aufk',
+    descricao: "Ordens de manutenção",
+    palavrasChave: [
+      "manutenção", "ordem de manutenção", "OS", "equipamento",
+      "manutenção corretiva", "manutenção preventiva", "PM"
+    ],
+    campos: {
+      AUFNR: "Número da ordem",
+      AUART: "Tipo de ordem",
+      WERKS: "Centro",
+      EQUNR: "Equipamento",
+      ERDAT: "Data de criação",
+      GSTRP: "Data início planejada",
+      GETRP: "Data fim planejada",
+      KOSTL: "Centro de custo",
+    }
+  },
+
   QMEL: {
+    tabela_banco: 'sap_qmel',
     descricao: "Notificações de qualidade",
-    palavrasChave: ["qualidade", "não conformidade", "defeito"],
+    palavrasChave: [
+      "qualidade", "defeito", "notificação de qualidade",
+      "não conformidade", "QM", "inspeção", "reclamação"
+    ],
     campos: {
       QMNUM: "Número da notificação",
+      QMART: "Tipo de notificação",
       MATNR: "Material",
-      QMTXT: "Descrição",
-      ERDAT: "Data",
-      STAT: "Status"
+      WERKS: "Centro",
+      QMTXT: "Descrição do defeito",
+      ERDAT: "Data de criação",
+      STAT:  "Status",
     }
-  }
+  },
+
 };
 
 function buildDictionaryText() {
   return Object.entries(sapDictionary)
     .map(([tabela, info]) =>
-      `Tabela ${tabela}: ${info.descricao}\n` +
-      `Campos: ${Object.entries(info.campos).map(([c, d]) => `${c} (${d})`).join(', ')}\n` +
-      `Palavras-chave: ${info.palavrasChave.join(', ')}`
+      `Tabela ${tabela} (banco: ${info.tabela_banco}): ${info.descricao}\n` +
+      `  Campos disponíveis: ${Object.entries(info.campos)
+        .map(([c, d]) => `${c} (${d})`).join(', ')}\n` +
+      `  Palavras-chave: ${info.palavrasChave.join(', ')}`
     ).join('\n\n');
 }
 
-module.exports = { sapDictionary, buildDictionaryText };
+// Retorna o nome real da tabela no banco a partir do nome SAP
+function getTabelaBanco(tabelaSAP) {
+  return sapDictionary[tabelaSAP]?.tabela_banco ?? null;
+}
+
+module.exports = { sapDictionary, buildDictionaryText, getTabelaBanco };

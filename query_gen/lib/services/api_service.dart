@@ -4,25 +4,19 @@ import 'package:http/http.dart' as http;
 import 'auth_service.dart';
 
 class ApiService {
-  // kIsWeb é true quando rodando no navegador
+  // ── Troca o IP aqui quando mudar de rede ──
+  static const _ipLocal = '10.2.0.135'; // <- coloca seu IP atual aqui
+  static const _porta   = '3000';
+
   static String get _base => kIsWeb
-      ? 'http://localhost:3000'
-      : 'http://10.0.2.2:3000'; 
-      
+      ? 'http://localhost:$_porta'
+      : 'http://$_ipLocal:$_porta';
 
   final _auth = AuthService();
 
   Map<String, String> get _jsonHeaders => {
         'Content-Type': 'application/json',
       };
-  
-  Future<Map<String, dynamic>> getHistoricoDados(int id) async {
-  final res = await http.get(
-    Uri.parse('$_base/api/historico/$id/dados'),
-    headers: await _authHeaders,
-  );
-  return _parse(res);
-}
 
   Future<Map<String, String>> get _authHeaders async {
     final token = await _auth.getToken();
@@ -90,6 +84,14 @@ class ApiService {
       Uri.parse('$_base/api/historico/$id'),
       headers: await _authHeaders,
     );
+  }
+
+  Future<Map<String, dynamic>> getHistoricoDados(int id) async {
+    final res = await http.get(
+      Uri.parse('$_base/api/historico/$id/dados'),
+      headers: await _authHeaders,
+    );
+    return _parse(res);
   }
 
   Future<void> solicitarRecuperacao(String email) async {

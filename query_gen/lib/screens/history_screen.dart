@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../theme/app_colors.dart';
 import '../utils/responsive.dart';
 import '../services/api_service.dart';
+import 'chart_screen.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -12,8 +13,9 @@ class HistoryScreen extends StatefulWidget {
 }
 
 class _HistoryScreenState extends State<HistoryScreen> {
-  List<dynamic> _items = [];
-  bool _loading = true;
+  List<dynamic> _items      = [];
+  bool          _loading    = true;
+  int?          _loadingId;
 
   @override
   void initState() {
@@ -30,6 +32,30 @@ class _HistoryScreenState extends State<HistoryScreen> {
     }
   }
 
+  Future<void> _verDados(dynamic item) async {
+    setState(() => _loadingId = item['id']);
+    try {
+      final data = await ApiService().getHistoricoDados(item['id']);
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ChartScreen(
+            dados:       List<dynamic>.from(data['dados'] ?? []),
+            tipoGrafico: data['grafico']   ?? 'barra',
+            eixoX:       data['eixo_x'],
+            eixoY:       data['eixo_y'],
+            descricao:   data['descricao'] ?? item['pergunta'] ?? '',
+          ),
+        ),
+      );
+    } catch (e) {
+      _showSnack('Erro ao carregar dados', AppColors.red);
+    } finally {
+      if (mounted) setState(() => _loadingId = null);
+    }
+  }
+
   Future<void> _deletar(int id) async {
     await ApiService().deletarHistorico(id);
     setState(() => _items.removeWhere((i) => i['id'] == id));
@@ -39,32 +65,27 @@ class _HistoryScreenState extends State<HistoryScreen> {
     if (raw == null) return '';
     try {
       final dt = DateTime.parse(raw).toLocal();
-      return '${dt.day.toString().padLeft(2, '0')}/'
-          '${dt.month.toString().padLeft(2, '0')}/'
+      return '${dt.day.toString().padLeft(2,'0')}/'
+          '${dt.month.toString().padLeft(2,'0')}/'
           '${dt.year}  '
-          '${dt.hour.toString().padLeft(2, '0')}:'
-          '${dt.minute.toString().padLeft(2, '0')}';
-    } catch (_) {
-      return raw;
-    }
+          '${dt.hour.toString().padLeft(2,'0')}:'
+          '${dt.minute.toString().padLeft(2,'0')}';
+    } catch (_) { return raw; }
   }
 
   void _showSnack(String msg, Color color) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg),
-        backgroundColor: color,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(msg),
+      backgroundColor: color,
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      duration: const Duration(seconds: 2),
+    ));
   }
 
   @override
   Widget build(BuildContext context) {
     final isWide = Responsive.isWide(context);
-
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(
@@ -86,9 +107,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
               : RefreshIndicator(
                   onRefresh: _load,
                   color: AppColors.accent,
-                  child: isWide
-                      ? _buildWebGrid()
-                      : _buildMobileList(),
+                  child: isWide ? _buildWebGrid() : _buildMobileList(),
                 ),
     );
   }
@@ -107,7 +126,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
-  // ── WEB: grid de 2 colunas ──
+  // Web — grid de 2 colunas com altura automática
   Widget _buildWebGrid() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(28),
@@ -115,27 +134,28 @@ class _HistoryScreenState extends State<HistoryScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('${_items.length} scripts gerados',
-              style: const TextStyle(
-                  color: AppColors.text2, fontSize: 13)),
+              style: const TextStyle(color: AppColors.text2, fontSize: 13)),
           const SizedBox(height: 20),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 14,
-              mainAxisSpacing: 14,
-              childAspectRatio: 1.6,
-            ),
-            itemCount: _items.length,
-            itemBuilder: (_, i) => _buildCard(_items[i]),
+          // Usa Wrap em vez de GridView para altura automática
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final cardWidth = (constraints.maxWidth - 14) / 2;
+              return Wrap(
+                spacing: 14,
+                runSpacing: 14,
+                children: _items.map((item) => SizedBox(
+                  width: cardWidth,
+                  child: _buildCard(item),
+                )).toList(),
+              );
+            },
           ),
         ],
       ),
     );
   }
 
-  // ── MOBILE: lista vertical ──
+  // Mobile — lista vertical
   Widget _buildMobileList() {
     return ListView.separated(
       padding: const EdgeInsets.all(16),
@@ -146,6 +166,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   Widget _buildCard(dynamic item) {
+    final isLoadingThis = _loadingId == item['id'];
+    final grafico       = item['grafico'] ?? 'barra';
+
     return Container(
       decoration: BoxDecoration(
         color: AppColors.panel,
@@ -154,6 +177,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min, // altura automática
         children: [
           // Header
           Padding(
@@ -184,12 +208,36 @@ class _HistoryScreenState extends State<HistoryScreen> {
             ),
           ),
 
-          // Data
+          // Data + badge tipo gráfico
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
-            child: Text(
-              _formatDate(item['created_at']),
-              style: const TextStyle(color: AppColors.text3, fontSize: 11),
+            padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
+            child: Row(
+              children: [
+                Text(_formatDate(item['created_at']),
+                    style: const TextStyle(
+                        color: AppColors.text3, fontSize: 11)),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(_iconGrafico(grafico),
+                          color: AppColors.text3, size: 10),
+                      const SizedBox(width: 3),
+                      Text(grafico,
+                          style: const TextStyle(
+                              color: AppColors.text3, fontSize: 10)),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
 
@@ -204,39 +252,70 @@ class _HistoryScreenState extends State<HistoryScreen> {
             child: Text(
               item['sql_gerado'] ?? '',
               style: const TextStyle(
-                fontFamily: 'monospace',
-                fontSize: 11,
-                color: AppColors.text2,
-                height: 1.6,
-              ),
+                  fontFamily: 'monospace',
+                  fontSize: 11,
+                  color: AppColors.text2,
+                  height: 1.6),
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
             ),
           ),
 
-          // Botão copiar
+          // Botões — proporcionais com padding uniforme
           Padding(
-            padding: const EdgeInsets.all(10),
-            child: SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () {
-                  Clipboard.setData(
-                      ClipboardData(text: item['sql_gerado'] ?? ''));
-                  _showSnack('SQL copiado!', AppColors.green);
-                },
-                icon: const Icon(Icons.copy, size: 14),
-                label: const Text('Copiar SQL',
-                    style: TextStyle(fontSize: 12)),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 9),
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: isLoadingThis ? null : () => _verDados(item),
+                    icon: isLoadingThis
+                        ? const SizedBox(
+                            width: 12, height: 12,
+                            child: CircularProgressIndicator(
+                                color: Colors.white, strokeWidth: 2))
+                        : Icon(_iconGrafico(grafico), size: 14),
+                    label: const Text('Visualizar',
+                        style: TextStyle(fontSize: 12)),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                  ),
                 ),
-              ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(
+                          text: item['sql_gerado'] ?? ''));
+                      _showSnack('SQL copiado!', AppColors.green);
+                    },
+                    icon: const Icon(Icons.copy, size: 14),
+                    label: const Text('Copiar SQL',
+                        style: TextStyle(fontSize: 12)),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
       ),
     );
+  }
+
+  IconData _iconGrafico(String tipo) {
+    switch (tipo) {
+      case 'pizza': return Icons.pie_chart_outline;
+      case 'linha': return Icons.show_chart;
+      default:      return Icons.bar_chart;
+    }
   }
 
   void _confirmDelete(int id) {
@@ -259,10 +338,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 style: TextStyle(color: AppColors.text2)),
           ),
           TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _deletar(id);
-            },
+            onPressed: () { Navigator.pop(context); _deletar(id); },
             child: const Text('Deletar',
                 style: TextStyle(color: AppColors.red)),
           ),

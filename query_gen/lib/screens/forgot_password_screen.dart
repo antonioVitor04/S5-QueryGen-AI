@@ -12,12 +12,12 @@ class ForgotPasswordScreen extends StatefulWidget {
 }
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
-  int _step = 0;
+  int  _step    = 0;
   bool _loading = false;
   bool _obscure1 = true;
   bool _obscure2 = true;
-  String _email = '';
-  int _tokenId = 0;
+  String _email   = '';
+  int    _tokenId = 0;
 
   final _emailController   = TextEditingController();
   final _tokenController   = TextEditingController();
@@ -35,56 +35,31 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   Future<void> _nextStep() async {
     setState(() => _loading = true);
-
     try {
       final api = ApiService();
 
       if (_step == 0) {
         _email = _emailController.text.trim();
-
-        // ── DEBUG ──
-        debugPrint('=== RECUPERAÇÃO: passo 0 ===');
-        debugPrint('Email digitado: $_email');
-
         if (_email.isEmpty) throw Exception('Insira seu e-mail');
-
-        debugPrint('Chamando solicitarRecuperacao...');
+        // Agora o backend retorna erro 404 se email não existir
         await api.solicitarRecuperacao(_email);
-        debugPrint('solicitarRecuperacao concluído com sucesso');
-
         if (!mounted) return;
         _showSnack('Código enviado para $_email', AppColors.green);
         setState(() => _step = 1);
 
       } else if (_step == 1) {
         final codigo = _tokenController.text.trim();
-
-        debugPrint('=== RECUPERAÇÃO: passo 1 ===');
-        debugPrint('Código digitado: $codigo');
-
         if (codigo.isEmpty) throw Exception('Insira o código');
-
-        debugPrint('Chamando verificarToken...');
         final data = await api.verificarToken(_email, codigo);
-        debugPrint('verificarToken retornou: $data');
-
         _tokenId = data['tokenId'];
         setState(() => _step = 2);
 
       } else {
         final nova    = _senhaController.text.trim();
         final confirm = _confirmController.text.trim();
-
-        debugPrint('=== RECUPERAÇÃO: passo 2 ===');
-        debugPrint('tokenId: $_tokenId');
-
         if (nova != confirm) throw Exception('As senhas não coincidem');
         if (nova.length < 6) throw Exception('Mínimo 6 caracteres');
-
-        debugPrint('Chamando redefinirSenha...');
         await api.redefinirSenha(_tokenId, nova);
-        debugPrint('redefinirSenha concluído com sucesso');
-
         if (!mounted) return;
         _showSnack('Senha redefinida com sucesso!', AppColors.green);
         Navigator.pushAndRemoveUntil(
@@ -93,11 +68,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           (_) => false,
         );
       }
-
     } catch (e) {
-      debugPrint('=== ERRO NA RECUPERAÇÃO ===');
-      debugPrint('Erro: $e');
-      debugPrint('Stack: ${StackTrace.current}');
       _showSnack(e.toString().replaceAll('Exception: ', ''), AppColors.red);
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -117,7 +88,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     final isWide = Responsive.isWide(context);
-
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(
@@ -177,7 +147,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   const SizedBox(height: 8),
                   Text(
                     _step == 0
-                        ? 'Insira seu e-mail para receber o código'
+                        ? 'Insira seu e-mail cadastrado para receber o código'
                         : _step == 1
                             ? 'Insira o código de 6 dígitos enviado para $_email'
                             : 'Crie uma nova senha para sua conta',
@@ -186,65 +156,53 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   ),
                   const SizedBox(height: 36),
 
-                  // Passo 0 — email
                   if (_step == 0)
-                    _buildField(
-                      'E-mail',
-                      'Insira seu e-mail',
-                      _emailController,
-                      keyboardType: TextInputType.emailAddress,
-                    ),
+                    _buildField('E-mail', 'Insira seu e-mail',
+                        _emailController,
+                        keyboardType: TextInputType.emailAddress),
 
-                  // Passo 1 — código
                   if (_step == 1) ...[
-                    _buildField(
-                      'Código de verificação',
-                      '000000',
-                      _tokenController,
-                      keyboardType: TextInputType.number,
-                    ),
+                    _buildField('Código de verificação', '000000',
+                        _tokenController,
+                        keyboardType: TextInputType.number),
                     const SizedBox(height: 16),
                     Center(
                       child: GestureDetector(
                         onTap: () async {
-                          debugPrint('Reenviando código para: $_email');
-                          await ApiService().solicitarRecuperacao(_email);
-                          if (!mounted) return;
-                          _showSnack('Código reenviado!', AppColors.green);
+                          try {
+                            await ApiService().solicitarRecuperacao(_email);
+                            if (!mounted) return;
+                            _showSnack('Código reenviado!', AppColors.green);
+                          } catch (e) {
+                            _showSnack(
+                              e.toString().replaceAll('Exception: ', ''),
+                              AppColors.red,
+                            );
+                          }
                         },
-                        child: const Text(
-                          'Reenviar código',
-                          style: TextStyle(
-                              color: AppColors.accent2, fontSize: 14),
-                        ),
+                        child: const Text('Reenviar código',
+                            style: TextStyle(
+                                color: AppColors.accent2, fontSize: 14)),
                       ),
                     ),
                   ],
 
-                  // Passo 2 — nova senha
                   if (_step == 2) ...[
-                    _buildField(
-                      'Nova senha',
-                      'Mínimo 6 caracteres',
-                      _senhaController,
-                      obscure: _obscure1,
-                      toggleObscure: () =>
-                          setState(() => _obscure1 = !_obscure1),
-                    ),
+                    _buildField('Nova senha', 'Mínimo 6 caracteres',
+                        _senhaController,
+                        obscure: _obscure1,
+                        toggleObscure: () =>
+                            setState(() => _obscure1 = !_obscure1)),
                     const SizedBox(height: 18),
-                    _buildField(
-                      'Confirmar senha',
-                      'Repita a senha',
-                      _confirmController,
-                      obscure: _obscure2,
-                      toggleObscure: () =>
-                          setState(() => _obscure2 = !_obscure2),
-                    ),
+                    _buildField('Confirmar senha', 'Repita a senha',
+                        _confirmController,
+                        obscure: _obscure2,
+                        toggleObscure: () =>
+                            setState(() => _obscure2 = !_obscure2)),
                   ],
 
                   const SizedBox(height: 32),
 
-                  // Botão
                   SizedBox(
                     width: double.infinity,
                     height: 52,
@@ -252,18 +210,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       onPressed: _loading ? null : _nextStep,
                       child: _loading
                           ? const SizedBox(
-                              width: 20,
-                              height: 20,
+                              width: 20, height: 20,
                               child: CircularProgressIndicator(
-                                  color: Colors.white, strokeWidth: 2),
-                            )
-                          : Text(
-                              _step == 0
-                                  ? 'Enviar código'
-                                  : _step == 1
-                                      ? 'Verificar código'
-                                      : 'Redefinir senha',
-                            ),
+                                  color: Colors.white, strokeWidth: 2))
+                          : Text(_step == 0
+                              ? 'Enviar código'
+                              : _step == 1
+                                  ? 'Verificar código'
+                                  : 'Redefinir senha'),
                     ),
                   ),
                 ],

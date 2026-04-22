@@ -15,6 +15,14 @@ class ApiService {
   Map<String, String> get _jsonHeaders => {
         'Content-Type': 'application/json',
       };
+  
+  Future<Map<String, dynamic>> getHistoricoDados(int id) async {
+  final res = await http.get(
+    Uri.parse('$_base/api/historico/$id/dados'),
+    headers: await _authHeaders,
+  );
+  return _parse(res);
+}
 
   Future<Map<String, String>> get _authHeaders async {
     final token = await _auth.getToken();

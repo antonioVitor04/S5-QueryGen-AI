@@ -4,8 +4,11 @@ import '../theme/app_colors.dart';
 import '../utils/responsive.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
+import '../widgets/chart_widget.dart';
+import '../widgets/data_table_widget.dart';
 import 'login_screen.dart';
 import 'history_screen.dart';
+import 'chart_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -19,13 +22,19 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _loading = false;
   String? _sql;
   String? _descricao;
-  List<String> _tabelas = [];
+  String  _tipoGrafico = 'barra';
+  String? _eixoX;
+  String? _eixoY;
+  List<String>  _tabelas = [];
+  List<dynamic> _dados   = [];
 
   static const _sugestoes = [
-    'Volume de produção — 3 meses',
-    'Faturamento do último mês',
-    'Movimentações de estoque',
-    'Pedidos de compra abertos',
+    'Volume de produção dos últimos 3 meses',
+    'Faturamento do último mês por cliente',
+    'Movimentações de estoque recentes',
+    'Pedidos de compra por fornecedor',
+    'Distribuição de notificações de qualidade por status',
+    'Estoque atual por material',
   ];
 
   @override
@@ -38,13 +47,17 @@ class _HomeScreenState extends State<HomeScreen> {
     final pergunta = _controller.text.trim();
     if (pergunta.isEmpty) return;
     FocusScope.of(context).unfocus();
-    setState(() { _loading = true; _sql = null; });
+    setState(() { _loading = true; _sql = null; _dados = []; });
     try {
       final data = await ApiService().gerarScript(pergunta);
       setState(() {
-        _sql       = data['sql'];
-        _descricao = data['descricao'];
-        _tabelas   = List<String>.from(data['tabelas'] ?? []);
+        _sql         = data['sql'];
+        _descricao   = data['descricao'];
+        _tipoGrafico = data['grafico']  ?? 'barra';
+        _eixoX       = data['eixo_x'];
+        _eixoY       = data['eixo_y'];
+        _tabelas     = List<String>.from(data['tabelas'] ?? []);
+        _dados       = List<dynamic>.from(data['dados']  ?? []);
       });
     } catch (e) {
       _showSnack(e.toString().replaceAll('Exception: ', ''), AppColors.red);
@@ -68,22 +81,35 @@ class _HomeScreenState extends State<HomeScreen> {
     _showSnack('SQL copiado!', AppColors.green);
   }
 
-  void _showSnack(String msg, Color color) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg),
-        backgroundColor: color,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        duration: const Duration(seconds: 2),
+  void _abrirGrafico() {
+    if (_dados.isEmpty) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ChartScreen(
+          dados:       _dados,
+          tipoGrafico: _tipoGrafico,
+          eixoX:       _eixoX,
+          eixoY:       _eixoY,
+          descricao:   _descricao ?? '',
+        ),
       ),
     );
+  }
+
+  void _showSnack(String msg, Color color) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(msg),
+      backgroundColor: color,
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      duration: const Duration(seconds: 2),
+    ));
   }
 
   @override
   Widget build(BuildContext context) {
     final isWide = Responsive.isWide(context);
-
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: _buildAppBar(),
@@ -95,28 +121,26 @@ class _HomeScreenState extends State<HomeScreen> {
     return AppBar(
       automaticallyImplyLeading: false,
       title: RichText(
-        text: const TextSpan(
-          children: [
-            TextSpan(
-                text: 'Query',
-                style: TextStyle(
-                    color: AppColors.text,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700)),
-            TextSpan(
-                text: 'Gen',
-                style: TextStyle(
-                    color: AppColors.accent2,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700)),
-            TextSpan(
-                text: ' AI',
-                style: TextStyle(
-                    color: AppColors.text,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700)),
-          ],
-        ),
+        text: const TextSpan(children: [
+          TextSpan(
+              text: 'Query',
+              style: TextStyle(
+                  color: AppColors.text,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700)),
+          TextSpan(
+              text: 'Gen',
+              style: TextStyle(
+                  color: AppColors.accent2,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700)),
+          TextSpan(
+              text: ' AI',
+              style: TextStyle(
+                  color: AppColors.text,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700)),
+        ]),
       ),
       actions: [
         IconButton(
@@ -140,12 +164,10 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ── WEB: input à esquerda, resultado à direita ──
   Widget _buildWebLayout() {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Painel esquerdo — input
         Container(
           width: 420,
           height: double.infinity,
@@ -155,28 +177,31 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(32),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildInputSection(),
-              ],
-            ),
+            child: _buildInputSection(),
           ),
         ),
-        // Painel direito — resultado
         Expanded(
           child: _sql == null
               ? _buildEmptyState()
               : SingleChildScrollView(
                   padding: const EdgeInsets.all(32),
-                  child: _buildResultCard(),
+                  child: Column(
+                    children: [
+                      _buildResultCard(),
+                      if (_dados.isNotEmpty) ...[
+                        const SizedBox(height: 20),
+                        _buildChartCard(),
+                        const SizedBox(height: 20),
+                        _buildTableCard(),
+                      ],
+                    ],
+                  ),
                 ),
         ),
       ],
     );
   }
 
-  // ── MOBILE: tudo em scroll vertical ──
   Widget _buildMobileLayout() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
@@ -187,6 +212,12 @@ class _HomeScreenState extends State<HomeScreen> {
           if (_sql != null) ...[
             const SizedBox(height: 24),
             _buildResultCard(),
+            if (_dados.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              _buildChartCard(),
+              const SizedBox(height: 16),
+              _buildTableCard(),
+            ],
           ],
         ],
       ),
@@ -201,11 +232,10 @@ class _HomeScreenState extends State<HomeScreen> {
         const Text(
           'O que você quer consultar?',
           style: TextStyle(
-            color: AppColors.text,
-            fontSize: 22,
-            fontWeight: FontWeight.w700,
-            letterSpacing: -0.5,
-          ),
+              color: AppColors.text,
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.5),
         ),
         const SizedBox(height: 6),
         const Text(
@@ -213,8 +243,6 @@ class _HomeScreenState extends State<HomeScreen> {
           style: TextStyle(color: AppColors.text2, fontSize: 14),
         ),
         const SizedBox(height: 20),
-
-        // Campo de texto
         Container(
           decoration: BoxDecoration(
             color: AppColors.surface,
@@ -223,20 +251,18 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           child: TextField(
             controller: _controller,
-            maxLines: 5,
+            maxLines: 4,
             style: const TextStyle(
                 color: AppColors.text, fontSize: 15, height: 1.5),
             decoration: const InputDecoration(
               hintText:
-                  'Ex: Quero ver o volume de produção dos últimos 3 meses',
+                  'Ex: Quero ver o faturamento dos últimos 3 meses por cliente',
               border: InputBorder.none,
               contentPadding: EdgeInsets.all(16),
             ),
           ),
         ),
         const SizedBox(height: 14),
-
-        // Botão gerar
         SizedBox(
           width: double.infinity,
           height: 52,
@@ -246,15 +272,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 ? const SizedBox(
                     width: 18, height: 18,
                     child: CircularProgressIndicator(
-                        color: Colors.white, strokeWidth: 2),
-                  )
+                        color: Colors.white, strokeWidth: 2))
                 : const Icon(Icons.auto_awesome, size: 18),
             label: Text(_loading ? 'Gerando...' : 'Gerar Script SQL'),
           ),
         ),
         const SizedBox(height: 24),
-
-        // Sugestões
         const Text('Sugestões',
             style: TextStyle(
                 color: AppColors.text2,
@@ -265,23 +288,21 @@ class _HomeScreenState extends State<HomeScreen> {
         Wrap(
           spacing: 8,
           runSpacing: 8,
-          children: _sugestoes
-              .map((s) => GestureDetector(
-                    onTap: () => setState(() => _controller.text = s),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: AppColors.border),
-                      ),
-                      child: Text(s,
-                          style: const TextStyle(
-                              color: AppColors.text2, fontSize: 12)),
-                    ),
-                  ))
-              .toList(),
+          children: _sugestoes.map((s) => GestureDetector(
+            onTap: () => setState(() => _controller.text = s),
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Text(s,
+                  style: const TextStyle(
+                      color: AppColors.text2, fontSize: 12)),
+            ),
+          )).toList(),
         ),
       ],
     );
@@ -293,18 +314,17 @@ class _HomeScreenState extends State<HomeScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: 72,
-            height: 72,
+            width: 72, height: 72,
             decoration: BoxDecoration(
               color: AppColors.surface,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: AppColors.border),
             ),
-            child: const Icon(Icons.code,
+            child: const Icon(Icons.query_stats,
                 color: AppColors.text3, size: 32),
           ),
           const SizedBox(height: 16),
-          const Text('Nenhum script gerado ainda',
+          const Text('Nenhuma consulta ainda',
               style: TextStyle(
                   color: AppColors.text2,
                   fontSize: 15,
@@ -343,8 +363,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: AppColors.green.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(5),
@@ -365,21 +385,19 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
               child: Wrap(
                 spacing: 6,
-                children: _tabelas
-                    .map((t) => Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: AppColors.accent.withOpacity(0.15),
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                          child: Text(t,
-                              style: const TextStyle(
-                                  color: AppColors.accent2,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600)),
-                        ))
-                    .toList(),
+                children: _tabelas.map((t) => Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: AppColors.accent.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  child: Text(t,
+                      style: const TextStyle(
+                          color: AppColors.accent2,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600)),
+                )).toList(),
               ),
             ),
 
@@ -394,28 +412,158 @@ class _HomeScreenState extends State<HomeScreen> {
             child: SelectableText(
               _sql!,
               style: const TextStyle(
-                fontFamily: 'monospace',
-                fontSize: 13,
-                color: AppColors.text2,
-                height: 1.7,
-              ),
+                  fontFamily: 'monospace',
+                  fontSize: 13,
+                  color: AppColors.text2,
+                  height: 1.7),
             ),
           ),
 
-          // Botão copiar
+          // Botões — proporcionais com Row
           Padding(
             padding: const EdgeInsets.all(12),
-            child: SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: _copiarSQL,
-                icon: const Icon(Icons.copy, size: 16),
-                label: const Text('Copiar SQL'),
-              ),
+            child: Row(
+              children: [
+                // Copiar SQL
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: _copiarSQL,
+                    icon: const Icon(Icons.copy, size: 15),
+                    label: const Text('Copiar SQL',
+                        style: TextStyle(fontSize: 13)),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 11),
+                      minimumSize: Size.zero,
+                    ),
+                  ),
+                ),
+                // Botão visualizar gráfico — só aparece se tiver dados
+                if (_dados.isNotEmpty) ...[
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: _abrirGrafico,
+                      icon: Icon(_iconGrafico(_tipoGrafico), size: 15),
+                      label: const Text('Ver gráfico',
+                          style: TextStyle(fontSize: 13)),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 11),
+                        minimumSize: Size.zero,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildChartCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.panel,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(_iconGrafico(_tipoGrafico),
+                  color: AppColors.accent2, size: 16),
+              const SizedBox(width: 8),
+              Text(
+                _labelGrafico(_tipoGrafico),
+                style: const TextStyle(
+                    color: AppColors.text2,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 0.5),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: AppColors.accent.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(5),
+                ),
+                child: Text('${_dados.length} registros',
+                    style: const TextStyle(
+                        color: AppColors.accent2,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          ChartWidget(
+            dados: _dados,
+            tipoGrafico: _tipoGrafico,
+            eixoX: _eixoX,
+            eixoY: _eixoY,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTableCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.panel,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.table_chart_outlined,
+                  color: AppColors.text2, size: 16),
+              const SizedBox(width: 8),
+              const Text('TABELA DE DADOS',
+                  style: TextStyle(
+                      color: AppColors.text2,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0.5)),
+              const Spacer(),
+              if (_dados.length > 100)
+                const Text('Exibindo 100 primeiros',
+                    style: TextStyle(
+                        color: AppColors.text3, fontSize: 11)),
+            ],
+          ),
+          const SizedBox(height: 14),
+          DataTableWidget(dados: _dados),
+        ],
+      ),
+    );
+  }
+
+  IconData _iconGrafico(String tipo) {
+    switch (tipo) {
+      case 'pizza': return Icons.pie_chart_outline;
+      case 'linha': return Icons.show_chart;
+      default:      return Icons.bar_chart;
+    }
+  }
+
+  String _labelGrafico(String tipo) {
+    switch (tipo) {
+      case 'pizza': return 'GRÁFICO DE PIZZA';
+      case 'linha': return 'GRÁFICO DE LINHA';
+      default:      return 'GRÁFICO DE BARRAS';
+    }
   }
 }

@@ -1,71 +1,92 @@
 const { getTabelaBanco } = require('./dictionary');
 
+function validarIaJson(iaJson) {
+  if (!iaJson || typeof iaJson !== 'object') {
+    throw new Error('Resposta da IA inválida');
+  }
+  if (!Array.isArray(iaJson.tabelas) || iaJson.tabelas.length === 0) {
+    throw new Error('Nenhuma tabela identificada pela IA');
+  }
+  if (!Array.isArray(iaJson.campos) || iaJson.campos.length === 0) {
+    throw new Error('Nenhum campo identificado pela IA');
+  }
+}
+
+function buildMapaTabelas(tabelas) {
+  const mapa = {};
+  for (const t of tabelas) {
+    const tUpper = t.toUpperCase().trim();
+    const real   = getTabelaBanco(tUpper);
+    if (!real) throw new Error(`Tabela SAP "${tUpper}" não existe no banco`);
+    mapa[tUpper] = real;
+  }
+  return mapa;
+}
+
+function traduzir(str, mapa) {
+  if (!str || typeof str !== 'string') return str ?? '';
+  let resultado = str;
+  for (const [sap, real] of Object.entries(mapa)) {
+    resultado = resultado.replace(new RegExp(`\\b${sap}\\.`, 'gi'), `${real}.`);
+  }
+  return resultado;
+}
+
 function buildSQL(iaJson) {
-  const { tabelas, campos, filtros, joins } = iaJson;
+  validarIaJson(iaJson);
 
-  if (!tabelas || tabelas.length === 0) {
-    throw new Error('Nenhuma tabela identificada');
-  }
-
-  // Troca nomes SAP pelos nomes reais do banco
-  const tabelasReais = tabelas.map(t => {
-    const real = getTabelaBanco(t);
-    if (!real) throw new Error(`Tabela ${t} não existe no banco`);
-    return { sap: t, real };
-  });
-
-  // Troca prefixos SAP pelos reais nos campos
-  function traduzirCampo(campo) {
-    if (!campo || typeof campo !== 'string') return campo;
-    for (const { sap, real } of tabelasReais) {
-      if (campo.startsWith(`${sap}.`)) {
-        return campo.replace(`${sap}.`, `${real}.`);
-      }
-    }
-    return campo;
-  }
+  const { tabelas, campos, filtros, joins, group_by } = iaJson;
+  const mapa            = buildMapaTabelas(tabelas);
+  const tabelaPrincipal = mapa[tabelas[0].toUpperCase()];
 
   // SELECT
-  const selectCampos = campos && campos.length > 0
-    ? campos.map(traduzirCampo).join(', ')
-    : tabelasReais.map(t => `${t.real}.*`).join(', ');
+  const selectCampos = campos
+    .map(c => traduzir(c, mapa))
+    .join(', ');
 
-  let sql = `SELECT ${selectCampos}\nFROM ${tabelasReais[0].real}`;
+  let sql = `SELECT ${selectCampos}\nFROM ${tabelaPrincipal}`;
 
-  // JOINs — aceita array de objetos ou string simples
-  if (joins && Array.isArray(joins)) {
+  // JOINs
+  if (Array.isArray(joins) && joins.length > 0) {
     for (const j of joins) {
-      const tabelaReal = getTabelaBanco(j.tabela) ?? j.tabela;
-      const condicao   = traduzirCampo(j.on);
+      if (!j?.tabela || !j?.on) continue;
+      const tabelaReal = getTabelaBanco(j.tabela.toUpperCase()) ?? j.tabela;
+      const condicao   = traduzir(j.on, mapa);
       sql += `\nJOIN ${tabelaReal} ON ${condicao}`;
     }
-  } else if (typeof joins === 'string' && joins) {
-    sql += `\nJOIN ${tabelasReais[1]?.real ?? ''} ON ${traduzirCampo(joins)}`;
   }
 
   // WHERE
   const wheres = [];
 
   if (filtros?.periodo_dias && filtros?.campo_data) {
-    const campo = traduzirCampo(filtros.campo_data);
-    wheres.push(
-      `${campo} >= DATE_SUB(NOW(), INTERVAL ${filtros.periodo_dias} DAY)`
-    );
+    const dias  = parseInt(filtros.periodo_dias, 10);
+    const campo = traduzir(filtros.campo_data, mapa);
+    if (!isNaN(dias) && campo) {
+      wheres.push(`${campo} >= DATE_SUB(NOW(), INTERVAL ${dias} DAY)`);
+    }
   }
 
   if (filtros?.data_inicio && filtros?.data_fim && filtros?.campo_data) {
-    const campo = traduzirCampo(filtros.campo_data);
-    wheres.push(
-      `${campo} BETWEEN '${filtros.data_inicio}' AND '${filtros.data_fim}'`
-    );
+    const campo  = traduzir(filtros.campo_data, mapa);
+    const inicio = filtros.data_inicio.replace(/[^0-9-]/g, '');
+    const fim    = filtros.data_fim.replace(/[^0-9-]/g, '');
+    if (campo && inicio && fim) {
+      wheres.push(`${campo} BETWEEN '${inicio}' AND '${fim}'`);
+    }
   }
 
   if (filtros?.where_extra && typeof filtros.where_extra === 'string') {
-    wheres.push(traduzirCampo(filtros.where_extra));
+    wheres.push(traduzir(filtros.where_extra, mapa));
   }
 
   if (wheres.length > 0) {
     sql += `\nWHERE ${wheres.join('\n  AND ')}`;
+  }
+
+  // GROUP BY — vem da IA, só traduz
+  if (group_by && typeof group_by === 'string' && group_by.trim()) {
+    sql += `\nGROUP BY ${traduzir(group_by.trim(), mapa)}`;
   }
 
   sql += '\nLIMIT 1000';

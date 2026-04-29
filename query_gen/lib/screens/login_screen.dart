@@ -5,6 +5,15 @@ import '../services/auth_service.dart';
 import 'home_screen.dart';
 import 'forgot_password_screen.dart';
 
+// Importe os widgets de gráficos (Ajuste o caminho conforme necessário)
+import '../widgets/graphics/activity_bars_widget.dart';
+import '../widgets/graphics/bar_chart_widget.dart';
+import '../widgets/graphics/donut_chart_widget.dart';
+import '../widgets/graphics/line_chart_widget.dart';
+import '../widgets/graphics/stat_pill_widget.dart';
+
+
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -77,15 +86,112 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Verifica a largura da tela para decidir o layout
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isDesktop = screenWidth > 900;
+
     return Scaffold(
       backgroundColor: AppColors.bg,
-      body: Center(
+      body: isDesktop
+          ? Row(
+              children: [
+                // Lado Esquerdo: Formulário de Login
+                Expanded(
+                  flex: 4,
+                  child: _buildLeftPanel(),
+                ),
+                // Lado Direito: Gráficos Alinhados
+                Expanded(
+                  flex: 6,
+                  child: _buildRightPanel(),
+                ),
+              ],
+            )
+          : _buildLeftPanel(), // Em telas menores, exibe apenas o formulário
+    );
+  }
+
+  // Painel Esquerdo com o Formulário
+  Widget _buildLeftPanel() {
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 420),
+          child: _buildForm(),
+        ),
+      ),
+    );
+  }
+
+  // Painel Direito com os Gráficos
+  Widget _buildRightPanel() {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF0b0d14), // Fundo levemente mais escuro para destacar
+        border: Border(
+          left: BorderSide(color: AppColors.border.withOpacity(0.5), width: 1),
+        ),
+      ),
+      child: Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
+          padding: const EdgeInsets.all(48),
           child: ConstrainedBox(
-            // Mesmo layout em web e mobile — só muda a largura máxima
-            constraints: const BoxConstraints(maxWidth: 420),
-            child: _buildForm(),
+            constraints: const BoxConstraints(maxWidth: 800),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Linha 1: Pílulas de Estatísticas
+                const StatPillsRow(),
+                const SizedBox(height: 24),
+                
+                // Linha 2: Gráfico de Linha e Donut
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Expanded(
+                      flex: 5,
+                      child: SizedBox(
+                        height: 280,
+                        child: LineChartWidget(),
+                      ),
+                    ),
+                    SizedBox(width: 24),
+                    Expanded(
+                      flex: 4,
+                      child: SizedBox(
+                        height: 280,
+                        child: DonutChartWidget(),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                
+                // Linha 3: Gráfico de Barras e Barras de Atividade
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Expanded(
+                      flex: 4,
+                      child: SizedBox(
+                        height: 280,
+                        child: BarChartWidget(),
+                      ),
+                    ),
+                    SizedBox(width: 24),
+                    Expanded(
+                      flex: 5,
+                      child: SizedBox(
+                        height: 280,
+                        child: ActivityBarsWidget(),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

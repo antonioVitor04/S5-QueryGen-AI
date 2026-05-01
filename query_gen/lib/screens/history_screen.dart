@@ -33,7 +33,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
     }
   }
 
-  // Resto dos métodos _verDados, _deletar, _formatDate, _showSnack iguais...
   Future<void> _verDados(dynamic item) async {
     setState(() => _loadingId = item['id']);
     try {
@@ -89,7 +88,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Widget build(BuildContext context) {
     final isWide = Responsive.isWide(context);
     
-    // Removido AppBar
     return Scaffold(
       backgroundColor: AppColors.bg,
       drawer: isWide ? null : const Drawer(
@@ -108,23 +106,27 @@ class _HistoryScreenState extends State<HistoryScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Cabeçalho da tela em substituição ao AppBar
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                    child: Row(
-                      children: [
-                        if (!isWide)
-                          Builder(
-                            builder: (ctx) => IconButton(
-                              icon: const Icon(Icons.menu, color: AppColors.text),
-                              onPressed: () => Scaffold.of(ctx).openDrawer(),
+                  // MUDANÇA: Altura fixa de 76 para bater com o menu
+                  SizedBox(
+                    height: 76,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center, // Centraliza verticalmente
+                        children: [
+                          if (!isWide)
+                            Builder(
+                              builder: (ctx) => IconButton(
+                                icon: const Icon(Icons.menu, color: AppColors.text),
+                                onPressed: () => Scaffold.of(ctx).openDrawer(),
+                              ),
                             ),
+                          const Text(
+                            'Histórico', 
+                            style: TextStyle(color: AppColors.text, fontSize: 24, fontWeight: FontWeight.bold)
                           ),
-                        const Text(
-                          'Histórico', 
-                          style: TextStyle(color: AppColors.text, fontSize: 24, fontWeight: FontWeight.bold)
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                   const Divider(color: AppColors.border, height: 1),
@@ -201,7 +203,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
-  // O resto (_buildCard, _iconGrafico, _confirmDelete) fica EXATAMENTE igual.
   Widget _buildCard(dynamic item) {
     final isLoadingThis = _loadingId == item['id'];
     final grafico       = item['grafico'] ?? 'barra';

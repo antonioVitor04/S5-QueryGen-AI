@@ -4,6 +4,7 @@ import '../theme/app_colors.dart';
 import '../utils/responsive.dart';
 import '../services/api_service.dart';
 import 'chart_screen.dart';
+import '../widgets/navbar/navbar.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -32,6 +33,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     }
   }
 
+  // Resto dos métodos _verDados, _deletar, _formatDate, _showSnack iguais...
   Future<void> _verDados(dynamic item) async {
     setState(() => _loadingId = item['id']);
     try {
@@ -86,29 +88,66 @@ class _HistoryScreenState extends State<HistoryScreen> {
   @override
   Widget build(BuildContext context) {
     final isWide = Responsive.isWide(context);
+    
+    // Removido AppBar
     return Scaffold(
       backgroundColor: AppColors.bg,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, size: 20),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text('Histórico'),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(height: 1, color: AppColors.border),
+      drawer: isWide ? null : const Drawer(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        child: NavBar(currentIndex: 1), // Índice 1 = Histórico
+      ),
+      body: SafeArea(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Fixa o menu do lado esquerdo no Desktop/Web
+            if (isWide) const NavBar(currentIndex: 1),
+            
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Cabeçalho da tela em substituição ao AppBar
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                    child: Row(
+                      children: [
+                        if (!isWide)
+                          Builder(
+                            builder: (ctx) => IconButton(
+                              icon: const Icon(Icons.menu, color: AppColors.text),
+                              onPressed: () => Scaffold.of(ctx).openDrawer(),
+                            ),
+                          ),
+                        const Text(
+                          'Histórico', 
+                          style: TextStyle(color: AppColors.text, fontSize: 24, fontWeight: FontWeight.bold)
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Divider(color: AppColors.border, height: 1),
+                  
+                  // Conteúdo
+                  Expanded(
+                    child: _loading
+                        ? const Center(
+                            child: CircularProgressIndicator(color: AppColors.accent))
+                        : _items.isEmpty
+                            ? _buildEmptyState()
+                            : RefreshIndicator(
+                                onRefresh: _load,
+                                color: AppColors.accent,
+                                child: isWide ? _buildWebGrid() : _buildMobileList(),
+                              ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
-      body: _loading
-          ? const Center(
-              child: CircularProgressIndicator(color: AppColors.accent))
-          : _items.isEmpty
-              ? _buildEmptyState()
-              : RefreshIndicator(
-                  onRefresh: _load,
-                  color: AppColors.accent,
-                  child: isWide ? _buildWebGrid() : _buildMobileList(),
-                ),
     );
   }
 
@@ -126,7 +165,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
-  // Web — grid de 2 colunas com altura automática
   Widget _buildWebGrid() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(28),
@@ -136,7 +174,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
           Text('${_items.length} scripts gerados',
               style: const TextStyle(color: AppColors.text2, fontSize: 13)),
           const SizedBox(height: 20),
-          // Usa Wrap em vez de GridView para altura automática
           LayoutBuilder(
             builder: (context, constraints) {
               final cardWidth = (constraints.maxWidth - 14) / 2;
@@ -155,7 +192,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
-  // Mobile — lista vertical
   Widget _buildMobileList() {
     return ListView.separated(
       padding: const EdgeInsets.all(16),
@@ -165,6 +201,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
+  // O resto (_buildCard, _iconGrafico, _confirmDelete) fica EXATAMENTE igual.
   Widget _buildCard(dynamic item) {
     final isLoadingThis = _loadingId == item['id'];
     final grafico       = item['grafico'] ?? 'barra';

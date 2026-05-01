@@ -3,12 +3,10 @@ import 'package:flutter/services.dart';
 import '../theme/app_colors.dart';
 import '../utils/responsive.dart';
 import '../services/api_service.dart';
-import '../services/auth_service.dart';
 import '../widgets/chart_widget.dart';
 import '../widgets/data_table_widget.dart';
-import 'login_screen.dart';
-import 'history_screen.dart';
 import 'chart_screen.dart';
+import '../widgets/navbar/navbar.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -66,15 +64,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _logout() async {
-    await AuthService().logout();
-    if (!mounted) return;
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-    );
-  }
-
   void _copiarSQL() {
     if (_sql == null) return;
     Clipboard.setData(ClipboardData(text: _sql!));
@@ -110,61 +99,66 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final isWide = Responsive.isWide(context);
+    
     return Scaffold(
       backgroundColor: AppColors.bg,
-      appBar: _buildAppBar(),
-      body: isWide ? _buildWebLayout() : _buildMobileLayout(),
+      drawer: isWide ? null : const Drawer(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        child: NavBar(currentIndex: 0), // Índice 0 = Scripts
+      ),
+      body: SafeArea(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Fixa o menu do lado esquerdo no Desktop/Web
+            if (isWide) const NavBar(currentIndex: 0),
+            
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Cabeçalho da tela formatado igual ao HistoryScreen
+                  // Cabeçalho da tela formatado com a mesma altura do menu
+                  SizedBox(
+                    height: 76, // <-- MESMA ALTURA DA LOGO
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center, // <-- CENTRALIZA COM A LOGO
+                        children: [
+                          if (!isWide)
+                            Builder(
+                              builder: (ctx) => IconButton(
+                                icon: const Icon(Icons.menu, color: AppColors.text),
+                                onPressed: () => Scaffold.of(ctx).openDrawer(),
+                              ),
+                            ),
+                          if (!isWide) const SizedBox(width: 8),
+                          const Text(
+                            'Scripts', // (No histórico, mude aqui para 'Histórico')
+                            style: TextStyle(color: AppColors.text, fontSize: 24, fontWeight: FontWeight.bold)
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const Divider(color: AppColors.border, height: 1),
+                  
+                  // Conteúdo dividido: Input (Esquerda) e Resultados (Direita) na Web
+                  Expanded(
+                    child: isWide ? _buildWebContent() : _buildMobileContent(),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
-  AppBar _buildAppBar() {
-    return AppBar(
-      automaticallyImplyLeading: false,
-      title: RichText(
-        text: const TextSpan(children: [
-          TextSpan(
-              text: 'Query',
-              style: TextStyle(
-                  color: AppColors.text,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700)),
-          TextSpan(
-              text: 'Gen',
-              style: TextStyle(
-                  color: AppColors.accent2,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700)),
-          TextSpan(
-              text: ' AI',
-              style: TextStyle(
-                  color: AppColors.text,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700)),
-        ]),
-      ),
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.history),
-          tooltip: 'Histórico',
-          onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const HistoryScreen()),
-          ),
-        ),
-        IconButton(
-          icon: const Icon(Icons.logout),
-          tooltip: 'Sair',
-          onPressed: _logout,
-        ),
-      ],
-      bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(1),
-        child: Container(height: 1, color: AppColors.border),
-      ),
-    );
-  }
-
-  Widget _buildWebLayout() {
+  Widget _buildWebContent() {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -172,7 +166,7 @@ class _HomeScreenState extends State<HomeScreen> {
           width: 420,
           height: double.infinity,
           decoration: const BoxDecoration(
-            color: AppColors.panel,
+            color: AppColors.bg,
             border: Border(right: BorderSide(color: AppColors.border)),
           ),
           child: SingleChildScrollView(
@@ -202,7 +196,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildMobileLayout() {
+  Widget _buildMobileContent() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -245,7 +239,7 @@ class _HomeScreenState extends State<HomeScreen> {
         const SizedBox(height: 20),
         Container(
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: Colors.transparent, // <--- AQUI: Removido o AppColors.surface
             borderRadius: BorderRadius.circular(14),
             border: Border.all(color: AppColors.border),
           ),
@@ -255,8 +249,7 @@ class _HomeScreenState extends State<HomeScreen> {
             style: const TextStyle(
                 color: AppColors.text, fontSize: 15, height: 1.5),
             decoration: const InputDecoration(
-              hintText:
-                  'Ex: Quero ver o faturamento dos últimos 3 meses por cliente',
+              hintText: 'Ex: Quero ver o faturamento dos últimos 3 meses por cliente',
               border: InputBorder.none,
               contentPadding: EdgeInsets.all(16),
             ),
@@ -294,7 +287,7 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.symmetric(
                   horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: Colors.transparent, // <--- AQUI: Removido o AppColors.surface
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: AppColors.border),
               ),
@@ -316,7 +309,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Container(
             width: 72, height: 72,
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: Colors.transparent, // <--- AQUI: Removido o AppColors.surface para combinar
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: AppColors.border),
             ),

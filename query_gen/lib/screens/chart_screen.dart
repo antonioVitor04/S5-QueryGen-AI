@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../widgets/chart_widget.dart';
 import '../widgets/data_table_widget.dart';
+import '../utils/responsive.dart'; // Import necessário para o Layout Responsivo
+import '../widgets/navbar/navbar.dart'; 
 
 class ChartScreen extends StatelessWidget {
   final List<dynamic> dados;
@@ -21,120 +23,164 @@ class ChartScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isWide = Responsive.isWide(context);
+
     return Scaffold(
       backgroundColor: AppColors.bg,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, size: 20),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          descricao,
-          style: const TextStyle(fontSize: 15),
-          overflow: TextOverflow.ellipsis,
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(height: 1, color: AppColors.border),
-        ),
+      drawer: isWide ? null : const Drawer(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        child: NavBar(currentIndex: 0), // O gráfico pertence à aba Scripts
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
+      body: SafeArea(
+        child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Gráfico
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AppColors.panel,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.border),
-              ),
+            // Fixa o menu esquerdo para Web
+            if (isWide) const NavBar(currentIndex: 0),
+
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Icon(
-                        _iconGrafico(),
-                        color: AppColors.accent2,
-                        size: 16,
+                  // Cabeçalho Interno (Substituto do AppBar)
+                  SizedBox(
+                    height: 76, // <-- MESMA ALTURA DA LOGO
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center, // <-- CENTRALIZA COM A LOGO
+                        children: [
+                          if (!isWide)
+                            Builder(
+                              builder: (ctx) => IconButton(
+                                icon: const Icon(Icons.menu, color: AppColors.text),
+                                onPressed: () => Scaffold.of(ctx).openDrawer(),
+                              ),
+                            ),
+                          IconButton(
+                            icon: const Icon(Icons.arrow_back_ios, size: 20, color: AppColors.text),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                          Expanded(
+                            child: Text(
+                              descricao,
+                              style: const TextStyle(color: AppColors.text, fontSize: 18, fontWeight: FontWeight.bold),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 8),
-                      Text(
-                        _labelGrafico(),
-                        style: const TextStyle(
-                          color: AppColors.text2,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                      const Spacer(),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: AppColors.accent.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                        child: Text(
-                          '${dados.length} registros',
-                          style: const TextStyle(
-                              color: AppColors.accent2,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                  const SizedBox(height: 20),
-                  ChartWidget(
-                    dados: dados,
-                    tipoGrafico: tipoGrafico,
-                    eixoX: eixoX,
-                    eixoY: eixoY,
-                  ),
-                ],
-              ),
-            ),
+                  const Divider(color: AppColors.border, height: 1),
 
-            const SizedBox(height: 20),
+                  // Área de Rolagem do Gráfico
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Gráfico
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: AppColors.panel,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: AppColors.border),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      _iconGrafico(),
+                                      color: AppColors.accent2,
+                                      size: 16,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      _labelGrafico(),
+                                      style: const TextStyle(
+                                        color: AppColors.text2,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8, vertical: 3),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.accent.withOpacity(0.15),
+                                        borderRadius: BorderRadius.circular(5),
+                                      ),
+                                      child: Text(
+                                        '${dados.length} registros',
+                                        style: const TextStyle(
+                                            color: AppColors.accent2,
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w600),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 20),
+                                ChartWidget(
+                                  dados: dados,
+                                  tipoGrafico: tipoGrafico,
+                                  eixoX: eixoX,
+                                  eixoY: eixoY,
+                                ),
+                              ],
+                            ),
+                          ),
 
-            // Tabela
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.panel,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.border),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.table_chart_outlined,
-                          color: AppColors.text2, size: 16),
-                      const SizedBox(width: 8),
-                      const Text('TABELA DE DADOS',
-                          style: TextStyle(
-                              color: AppColors.text2,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                              letterSpacing: 0.5)),
-                      const Spacer(),
-                      if (dados.length > 100)
-                        const Text('Exibindo 100 primeiros',
-                            style: TextStyle(
-                                color: AppColors.text3, fontSize: 11)),
-                    ],
+                          const SizedBox(height: 20),
+
+                          // Tabela
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: AppColors.panel,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: AppColors.border),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    const Icon(Icons.table_chart_outlined,
+                                        color: AppColors.text2, size: 16),
+                                    const SizedBox(width: 8),
+                                    const Text('TABELA DE DADOS',
+                                        style: TextStyle(
+                                            color: AppColors.text2,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w500,
+                                            letterSpacing: 0.5)),
+                                    const Spacer(),
+                                    if (dados.length > 100)
+                                      const Text('Exibindo 100 primeiros',
+                                          style: TextStyle(
+                                              color: AppColors.text3, fontSize: 11)),
+                                  ],
+                                ),
+                                const SizedBox(height: 14),
+                                DataTableWidget(dados: dados),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 14),
-                  DataTableWidget(dados: dados),
                 ],
               ),
             ),

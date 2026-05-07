@@ -42,9 +42,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final senha = _senhaController.text.trim();
     final confirm = _confirmController.text.trim();
 
-    if (senha.isNotEmpty && senha != confirm) {
-      _showSnack('As senhas não coincidem', AppColors.red);
-      return;
+    if (senha.isNotEmpty) {
+      if (senha.length < 8) {
+        _showSnack('A senha deve ter pelo menos 8 caracteres', AppColors.red);
+        return;
+      }
+      if (!RegExp(r'[A-Z]').hasMatch(senha)) {
+        _showSnack('A senha deve conter pelo menos uma letra maiúscula', AppColors.red);
+        return;
+      }
+      if (!RegExp(r'[0-9]').hasMatch(senha)) {
+        _showSnack('A senha deve conter pelo menos um número', AppColors.red);
+        return;
+      }
+      if (!RegExp(r'[!@#$%^&*()_+\-=\[\]{};:"\\|,.<>/?]').hasMatch(senha)) {
+        _showSnack('A senha deve conter pelo menos um caractere especial', AppColors.red);
+        return;
+      }
+      if (senha != confirm) {
+        _showSnack('As senhas não coincidem', AppColors.red);
+        return;
+      }
     }
 
     setState(() => _loading = true);
@@ -203,7 +221,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         style: TextStyle(color: AppColors.text3, fontSize: 13)),
                                     const SizedBox(height: 20),
 
-                                    _buildField('Nova senha', 'Mínimo 6 caracteres', _senhaController, 
+                                    _buildField('Nova senha', 'Mínimo 8 caracteres', _senhaController, 
                                         obscure: _obscureSenha, 
                                         toggleObscure: () => setState(() => _obscureSenha = !_obscureSenha)),
                                     const SizedBox(height: 20),

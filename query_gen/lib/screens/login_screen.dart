@@ -23,16 +23,19 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _loading = false;
   bool _keepConnected = false;
   bool _obscure = true;
+  bool _obscureConfirm = true;
 
-  final _emailController = TextEditingController();
-  final _senhaController = TextEditingController();
-  final _nomeController = TextEditingController();
+  final _emailController        = TextEditingController();
+  final _senhaController        = TextEditingController();
+  final _nomeController         = TextEditingController();
+  final _confirmSenhaController = TextEditingController();
 
   @override
   void dispose() {
     _emailController.dispose();
     _senhaController.dispose();
     _nomeController.dispose();
+    _confirmSenhaController.dispose();
     super.dispose();
   }
 
@@ -40,15 +43,50 @@ class _LoginScreenState extends State<LoginScreen> {
     _emailController.clear();
     _senhaController.clear();
     _nomeController.clear();
+    _confirmSenhaController.clear();
+  }
+
+  bool _isValidEmail(String email) {
+    return RegExp(r'^[\w.+\-]+@[a-zA-Z0-9\-]+\.[a-zA-Z]{2,}$').hasMatch(email);
+  }
+
+  String? _validatePassword(String password) {
+    if (password.length < 8) return 'A senha deve ter pelo menos 8 caracteres';
+    if (!RegExp(r'[A-Z]').hasMatch(password)) return 'A senha deve conter pelo menos uma letra maiúscula';
+    if (!RegExp(r'[0-9]').hasMatch(password)) return 'A senha deve conter pelo menos um número';
+    if (!RegExp(r'[!@#$%^&*()_+\-=\[\]{};:"\\|,.<>/?]').hasMatch(password)) {
+      return 'A senha deve conter pelo menos um caractere especial';
+    }
+    return null;
   }
 
   Future<void> _submit() async {
     final email = _emailController.text.trim();
     final senha = _senhaController.text.trim();
+
     if (email.isEmpty || senha.isEmpty) {
       _showSnack('Preencha todos os campos', AppColors.red);
       return;
     }
+
+    if (!_isValidEmail(email)) {
+      _showSnack('Insira um e-mail válido', AppColors.red);
+      return;
+    }
+
+    if (!_isLogin) {
+      final passwordError = _validatePassword(senha);
+      if (passwordError != null) {
+        _showSnack(passwordError, AppColors.red);
+        return;
+      }
+      final confirm = _confirmSenhaController.text.trim();
+      if (senha != confirm) {
+        _showSnack('As senhas não coincidem', AppColors.red);
+        return;
+      }
+    }
+
     setState(() => _loading = true);
     try {
       final api = ApiService();
@@ -94,14 +132,8 @@ class _LoginScreenState extends State<LoginScreen> {
       body: isDesktop
           ? Row(
               children: [
-                Expanded(
-                  flex: 4,
-                  child: _buildLeftPanel(),
-                ),
-                Expanded(
-                  flex: 6,
-                  child: _buildRightPanel(),
-                ),
+                Expanded(flex: 4, child: _buildLeftPanel()),
+                Expanded(flex: 6, child: _buildRightPanel()),
               ],
             )
           : _buildLeftPanel(),
@@ -125,7 +157,7 @@ class _LoginScreenState extends State<LoginScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFF0b0d14),
         border: Border(
-          left: BorderSide(color: AppColors.border.withOpacity(0.5), width: 1),
+          left: BorderSide(color: AppColors.border.withValues(alpha: 0.5), width: 1),
         ),
       ),
       child: Center(
@@ -144,18 +176,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: const [
                     Expanded(
                       flex: 5,
-                      child: SizedBox(
-                        height: 280,
-                        child: LineChartWidget(),
-                      ),
+                      child: SizedBox(height: 280, child: LineChartWidget()),
                     ),
                     SizedBox(width: 24),
                     Expanded(
                       flex: 4,
-                      child: SizedBox(
-                        height: 280,
-                        child: DonutChartWidget(),
-                      ),
+                      child: SizedBox(height: 280, child: DonutChartWidget()),
                     ),
                   ],
                 ),
@@ -165,18 +191,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: const [
                     Expanded(
                       flex: 4,
-                      child: SizedBox(
-                        height: 280,
-                        child: BarChartWidget(),
-                      ),
+                      child: SizedBox(height: 280, child: BarChartWidget()),
                     ),
                     SizedBox(width: 24),
                     Expanded(
                       flex: 5,
-                      child: SizedBox(
-                        height: 280,
-                        child: ActivityBarsWidget(),
-                      ),
+                      child: SizedBox(height: 280, child: ActivityBarsWidget()),
                     ),
                   ],
                 ),
@@ -200,7 +220,7 @@ class _LoginScreenState extends State<LoginScreen> {
             borderRadius: BorderRadius.circular(14),
             boxShadow: [
               BoxShadow(
-                color: AppColors.accent.withOpacity(0.35),
+                color: AppColors.accent.withValues(alpha: 0.35),
                 blurRadius: 20,
                 offset: const Offset(0, 6),
               ),
@@ -238,18 +258,20 @@ class _LoginScreenState extends State<LoginScreen> {
           ]),
         ),
         const SizedBox(height: 36),
-        const Text(
-          'Bem vindo de volta!',
-          style: TextStyle(
+        Text(
+          _isLogin ? 'Bem vindo de volta!' : 'Crie sua conta',
+          style: const TextStyle(
               color: AppColors.text,
               fontSize: 26,
               fontWeight: FontWeight.w700,
               letterSpacing: -0.5),
         ),
         const SizedBox(height: 8),
-        const Text(
-          'Insira seu e-mail e sua senha para continuar',
-          style: TextStyle(color: AppColors.text2, fontSize: 14),
+        Text(
+          _isLogin
+              ? 'Insira seu e-mail e sua senha para continuar'
+              : 'Preencha os dados abaixo para se cadastrar',
+          style: const TextStyle(color: AppColors.text2, fontSize: 14),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 32),
@@ -273,7 +295,28 @@ class _LoginScreenState extends State<LoginScreen> {
         _buildField('E-mail', 'Insira seu e-mail', _emailController,
             keyboardType: TextInputType.emailAddress),
         const SizedBox(height: 18),
-        _buildPasswordField(),
+        _buildPasswordField(
+          label: 'Senha',
+          hint: _isLogin ? 'Insira sua senha' : 'Mínimo 8 caracteres',
+          controller: _senhaController,
+          obscure: _obscure,
+          onToggle: () => setState(() => _obscure = !_obscure),
+        ),
+        if (!_isLogin) ...[
+          const SizedBox(height: 6),
+          const Text(
+            'Use 8+ caracteres com maiúscula, número e caractere especial.',
+            style: TextStyle(color: AppColors.text3, fontSize: 11, height: 1.4),
+          ),
+          const SizedBox(height: 18),
+          _buildPasswordField(
+            label: 'Confirmar senha',
+            hint: 'Repita sua senha',
+            controller: _confirmSenhaController,
+            obscure: _obscureConfirm,
+            onToggle: () => setState(() => _obscureConfirm = !_obscureConfirm),
+          ),
+        ],
         const SizedBox(height: 16),
         if (_isLogin) _buildBottomRow(),
         const SizedBox(height: 28),
@@ -291,16 +334,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 : Text(_isLogin ? 'Entrar' : 'Cadastrar'),
           ),
         ),
-        const SizedBox(height: 20),
-        GestureDetector(
-          onTap: () => setState(() {
-            _isLogin = !_isLogin;
-            _clearFields();
-          }),
-          child: RichText(
-            text: const TextSpan(children: []),
-          ),
-        ),
       ],
     );
   }
@@ -309,8 +342,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final active = _isLogin == isLoginTab;
     return Expanded(
       child: GestureDetector(
-        onTap: () =>
-            setState(() => {_isLogin = isLoginTab, _clearFields()}),
+        onTap: () => setState(() { _isLogin = isLoginTab; _clearFields(); }),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(vertical: 11),
@@ -320,7 +352,7 @@ class _LoginScreenState extends State<LoginScreen> {
             boxShadow: active
                 ? [
                     BoxShadow(
-                        color: AppColors.accent.withOpacity(0.3),
+                        color: AppColors.accent.withValues(alpha: 0.3),
                         blurRadius: 12)
                   ]
                 : null,
@@ -349,8 +381,7 @@ class _LoginScreenState extends State<LoginScreen> {
             height: 20,
             child: Checkbox(
               value: _keepConnected,
-              onChanged: (v) =>
-                  setState(() => _keepConnected = v ?? false),
+              onChanged: (v) => setState(() => _keepConnected = v ?? false),
               activeColor: AppColors.accent,
               side: const BorderSide(color: AppColors.border, width: 1.5),
               shape: RoundedRectangleBorder(
@@ -364,8 +395,7 @@ class _LoginScreenState extends State<LoginScreen> {
         GestureDetector(
           onTap: () => Navigator.push(
             context,
-            MaterialPageRoute(
-                builder: (_) => const ForgotPasswordScreen()),
+            MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
           ),
           child: const Text('Esqueci minha senha',
               style: TextStyle(
@@ -402,30 +432,35 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildPasswordField() {
+  Widget _buildPasswordField({
+    required String label,
+    required String hint,
+    required TextEditingController controller,
+    required bool obscure,
+    required VoidCallback onToggle,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Senha',
-            style: TextStyle(
+        Text(label,
+            style: const TextStyle(
                 color: AppColors.text2,
                 fontSize: 13,
                 fontWeight: FontWeight.w500)),
         const SizedBox(height: 8),
         TextField(
-          controller: _senhaController,
-          obscureText: _obscure,
+          controller: controller,
+          obscureText: obscure,
           style: const TextStyle(color: AppColors.text, fontSize: 15),
           decoration: InputDecoration(
-            hintText: 'Insira sua senha',
+            hintText: hint,
             suffixIcon: IconButton(
               icon: Icon(
-                _obscure ? Icons.visibility_off : Icons.visibility,
+                obscure ? Icons.visibility_off : Icons.visibility,
                 color: AppColors.text3,
                 size: 20,
               ),
-              onPressed: () =>
-                  setState(() => _obscure = !_obscure),
+              onPressed: onToggle,
             ),
           ),
         ),

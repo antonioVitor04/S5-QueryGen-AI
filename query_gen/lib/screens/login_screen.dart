@@ -92,14 +92,19 @@ class _LoginScreenState extends State<LoginScreen> {
       final api = ApiService();
       if (_isLogin) {
         final data = await api.login(email, senha);
-        await AuthService().saveToken(data['token'], data['email']);
+        await AuthService().saveToken(
+          data['token'],
+          data['email'],
+          nome: data['nome'] as String?,
+        );
         if (!mounted) return;
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const HomeScreen()),
         );
       } else {
-        await api.register(email, senha);
+        final nome = _nomeController.text.trim();
+        await api.register(email, senha, nome);
         _showSnack('Conta criada! Faça login.', AppColors.green);
         setState(() {
           _isLogin = true;

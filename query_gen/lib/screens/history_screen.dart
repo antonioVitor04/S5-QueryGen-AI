@@ -316,9 +316,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       style: TextStyle(fontSize: 12)),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 10),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        horizontal: 14, vertical: 8),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -333,9 +331,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       style: TextStyle(fontSize: 12)),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 10),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        horizontal: 14, vertical: 8),
                   ),
                 ),
               ],

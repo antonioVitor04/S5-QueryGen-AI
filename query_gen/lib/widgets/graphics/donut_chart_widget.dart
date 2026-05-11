@@ -1,95 +1,122 @@
-import 'dart:math';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
-class DonutChartWidget extends StatelessWidget {
+class DonutChartWidget extends StatefulWidget {
   final String label;
   final List<DonutSegment> segments;
 
   const DonutChartWidget({
     super.key,
-    this.label = 'Lorem',
+    this.label = 'Canais',
     this.segments = const [
-      DonutSegment(label: 'Lorem', value: 0.42, color: Color(0xFF6366f1)),
-      DonutSegment(label: 'Lorem',  value: 0.28, color: Color(0xFF34d399)),
-      DonutSegment(label: 'Lorem',  value: 0.18, color: Color(0xFFf59e0b)),
+      DonutSegment(label: 'Orgânico', value: 0.42, color: Color(0xFF6366f1)),
+      DonutSegment(label: 'Pago', value: 0.28, color: Color(0xFF34d399)),
+      DonutSegment(label: 'Referral', value: 0.18, color: Color(0xFFf59e0b)),
     ],
   });
 
   @override
+  State<DonutChartWidget> createState() => _DonutChartWidgetState();
+}
+
+class _DonutChartWidgetState extends State<DonutChartWidget> with TickerProviderStateMixin {
+  late final AnimationController _entryController;
+  late final AnimationController _focusController;
+
+  @override
+  void initState() {
+    super.initState();
+    _entryController = AnimationController(vsync: this, duration: const Duration(milliseconds: 900))..forward();
+    _focusController = AnimationController(vsync: this, duration: const Duration(seconds: 7))..repeat(reverse: true);
+  }
+
+  @override
+  void didUpdateWidget(covariant DonutChartWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.segments != widget.segments) {
+      _entryController
+        ..reset()
+        ..forward();
+    }
+  }
+
+  @override
+  void dispose() {
+    _entryController.dispose();
+    _focusController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0f1119),
-        border: Border.all(color: const Color(0xFF1e2236)),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label,
-              style: const TextStyle(color: Color(0xFF6b7280), fontSize: 12)),
-          const Text('Lorem',
-              style: TextStyle(
-                  color: Color(0xFFf0f2fc),
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600)),
-          const SizedBox(height: 16),
-          Expanded(
-            child: Row(
-              children: [
-                Expanded(
-                  flex: 5,
-                  child: CustomPaint(
-                    painter: _DonutPainter(
-                      segments: segments,
-                      progress: 1.0,
-                      rotationAngle: 0.0,
-                      hoveredIndex: -1,
+    final total = widget.segments.fold<double>(0, (s, e) => s + e.value);
+    return AnimatedBuilder(
+      animation: Listenable.merge([_entryController, _focusController]),
+      builder: (context, _) {
+        final appear = Curves.easeOutCubic.transform(_entryController.value);
+        final t = _focusController.value;
+        final focusCenter =
+            ((math.sin((t * math.pi * 2) - (math.pi / 2)) + 1) / 2) *
+                (widget.segments.length - 1);
+
+        return Opacity(
+          opacity: appear,
+          child: Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF101526), Color(0xFF0C111F)]),
+              border: Border.all(color: const Color(0xFF263055)),
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(widget.label, style: const TextStyle(color: Color(0xFF7782A7), fontSize: 12)),
+              const SizedBox(height: 2),
+              const Text('Distribuição', style: TextStyle(color: Color(0xFFE7EBF7), fontSize: 28, fontWeight: FontWeight.w700, height: 1, letterSpacing: -0.3)),
+              const SizedBox(height: 18),
+              Expanded(
+                child: Row(children: [
+                  Expanded(
+                    flex: 11,
+                    child: Center(
+                      child: SizedBox(
+                        width: 170,
+                        height: 170,
+                        child: CustomPaint(
+                          painter: _DonutPainter(segments: widget.segments, total: total, reveal: appear, focusCenter: focusCenter),
+                        ),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  flex: 4,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: List.generate(segments.length, (i) {
-                      final seg = segments[i];
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 10),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 5),
-                        child: Row(children: [
-                          Container(
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              color: seg.color,
-                              shape: BoxShape.circle,
+                  const SizedBox(width: 10),
+                  Expanded(
+                    flex: 9,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(widget.segments.length, (i) {
+                        final seg = widget.segments[i];
+                        final emphasis = (1 - ((focusCenter - i).abs() / 1.2)).clamp(0.0, 1.0).toDouble();
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Row(children: [
+                            Container(
+                              width: 8 + (2 * emphasis),
+                              height: 8 + (2 * emphasis),
+                              decoration: BoxDecoration(color: seg.color, shape: BoxShape.circle, boxShadow: [BoxShadow(color: seg.color.withOpacity(0.15 + (0.25 * emphasis)), blurRadius: 8)]),
                             ),
-                          ),
-                          const SizedBox(width: 7),
-                          Text(seg.label,
-                              style: const TextStyle(
-                                  color: Color(0xFF9ca3af), fontSize: 12)),
-                          const Spacer(),
-                          Text('${(seg.value * 100).toInt()}%',
-                              style: const TextStyle(
-                                  color: Color(0xFFe8eaf0),
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600)),
-                        ]),
-                      );
-                    }),
+                            const SizedBox(width: 8),
+                            Expanded(child: Text(seg.label, style: TextStyle(color: Color.lerp(const Color(0xFFA8B0C4), const Color(0xFFEAF0FF), emphasis), fontSize: 12, fontWeight: FontWeight.w600))),
+                            Text('${(seg.value * 100 * appear).round()}%', style: const TextStyle(color: Color(0xFFEAF0FF), fontSize: 12.5, fontWeight: FontWeight.w700)),
+                          ]),
+                        );
+                      }),
+                    ),
                   ),
-                ),
-              ],
-            ),
+                ]),
+              ),
+            ]),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -103,78 +130,54 @@ class DonutSegment {
 
 class _DonutPainter extends CustomPainter {
   final List<DonutSegment> segments;
-  final double progress;
-  final double rotationAngle;
-  final int hoveredIndex;
+  final double total;
+  final double reveal;
+  final double focusCenter;
 
-  _DonutPainter({
-    required this.segments,
-    required this.progress,
-    required this.rotationAngle,
-    required this.hoveredIndex,
-  });
+  _DonutPainter({required this.segments, required this.total, required this.reveal, required this.focusCenter});
 
   @override
   void paint(Canvas canvas, Size size) {
-    final cx = size.width / 2;
-    final cy = size.height / 2;
-    final r = min(cx, cy) - 10;
-    const sw = 13.0;
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = (size.width < size.height ? size.width : size.height) / 2 - 10;
 
-    canvas.drawCircle(
-      Offset(cx, cy),
-      r,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = sw
-        ..color = const Color(0xFF1e2236),
-    );
+    canvas.drawCircle(center, radius, Paint()..style = PaintingStyle.stroke..strokeWidth = 18..color = const Color(0xFF1B2340));
 
-    double startAngle = -pi / 2;
+    const gap = 0.06;
+    final normalized = total <= 0 ? 1.0 : total;
+    var start = -3.14159265359 / 2;
+
     for (int i = 0; i < segments.length; i++) {
       final seg = segments[i];
-      final sweep = seg.value * 2 * pi * progress;
-
-      final paint = Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = sw
-        ..strokeCap = StrokeCap.round
-        ..color = seg.color;
+      final rawSweep = ((seg.value / normalized) * (3.14159265359 * 2)) - gap;
+      final sweep = rawSweep * reveal;
+      final emphasis = (1 - ((focusCenter - i).abs() / 1.2)).clamp(0.0, 1.0).toDouble();
 
       canvas.drawArc(
-        Rect.fromCircle(center: Offset(cx, cy), radius: r),
-        startAngle,
+        Rect.fromCircle(center: center, radius: radius),
+        start,
         sweep,
         false,
-        paint,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 18 + (3 * emphasis)
+          ..strokeCap = StrokeCap.round
+          ..shader = SweepGradient(startAngle: start, endAngle: start + sweep, colors: [seg.color.withOpacity(0.78 + (0.2 * emphasis)), seg.color]).createShader(Rect.fromCircle(center: center, radius: radius)),
       );
 
-      startAngle += sweep;
+      start += rawSweep + gap;
     }
 
-    final tp = TextPainter(
-      text: const TextSpan(
-        text: 'Total',
-        style: TextStyle(color: Color(0xFF6b7280), fontSize: 11),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    tp.paint(canvas, Offset(cx - tp.width / 2, cy - 14));
+    final totalPct = (total * 100 * reveal).round();
+    final t1 = TextPainter(text: const TextSpan(text: 'Total', style: TextStyle(color: Color(0xFF7782A7), fontSize: 12)), textDirection: TextDirection.ltr)..layout();
+    t1.paint(canvas, Offset(center.dx - t1.width / 2, center.dy - 18));
 
-    final tp2 = TextPainter(
-      text: const TextSpan(
-        text: '88%',
-        style: TextStyle(
-          color: Color(0xFFf0f2fc),
-          fontSize: 17,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    tp2.paint(canvas, Offset(cx - tp2.width / 2, cy - 2));
+    final t2 = TextPainter(text: TextSpan(text: '$totalPct%', style: const TextStyle(color: Color(0xFFEAF0FF), fontSize: 30, fontWeight: FontWeight.w800, letterSpacing: -0.6)), textDirection: TextDirection.ltr)..layout();
+    t2.paint(canvas, Offset(center.dx - t2.width / 2, center.dy - 2));
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _DonutPainter oldDelegate) {
+    return oldDelegate.segments != segments || oldDelegate.total != total || oldDelegate.reveal != reveal || oldDelegate.focusCenter != focusCenter;
+  }
 }

@@ -136,10 +136,22 @@ class _LoginScreenState extends State<LoginScreen> {
                 Expanded(flex: 6, child: _buildRightPanel()),
               ],
             )
-          : _buildLeftPanel(),
+          : _buildMobileLayout(),
     );
   }
-
+  Widget _buildMobileLayout() {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          _buildLeftPanel(),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+            child: _buildRightPanelContent(),
+          ),
+        ],
+      ),
+    );
+  }
   Widget _buildLeftPanel() {
     return Center(
       child: SingleChildScrollView(
@@ -163,48 +175,81 @@ class _LoginScreenState extends State<LoginScreen> {
       child: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(48),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 800),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const StatPillsRow(),
-                const SizedBox(height: 24),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Expanded(
-                      flex: 5,
-                      child: SizedBox(height: 280, child: LineChartWidget()),
-                    ),
-                    SizedBox(width: 24),
-                    Expanded(
-                      flex: 4,
-                      child: SizedBox(height: 280, child: DonutChartWidget()),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Expanded(
-                      flex: 4,
-                      child: SizedBox(height: 280, child: BarChartWidget()),
-                    ),
-                    SizedBox(width: 24),
-                    Expanded(
-                      flex: 5,
-                      child: SizedBox(height: 280, child: ActivityBarsWidget()),
-                    ),
-                  ],
-                ),
-              ],
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 800),
+              child: SizedBox(
+                width: double.infinity,
+                child: _buildRightPanelContent(),
+              ),
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildRightPanelContent() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < 980;
+        if (isNarrow) {
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: const [
+              StatPillsRow(),
+              SizedBox(height: 24),
+              SizedBox(height: 280, child: LineChartWidget()),
+              SizedBox(height: 24),
+              SizedBox(height: 280, child: DonutChartWidget()),
+              SizedBox(height: 24),
+              SizedBox(height: 280, child: BarChartWidget()),
+              SizedBox(height: 24),
+              SizedBox(height: 280, child: ActivityBarsWidget()),
+            ],
+          );
+        }
+
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const StatPillsRow(),
+            const SizedBox(height: 24),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Expanded(
+                  flex: 5,
+                  child: SizedBox(height: 280, child: LineChartWidget()),
+                ),
+                SizedBox(width: 24),
+                Expanded(
+                  flex: 4,
+                  child: SizedBox(height: 280, child: DonutChartWidget()),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Expanded(
+                  flex: 4,
+                  child: SizedBox(height: 280, child: BarChartWidget()),
+                ),
+                SizedBox(width: 24),
+                Expanded(
+                  flex: 5,
+                  child: SizedBox(height: 280, child: ActivityBarsWidget()),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
     );
   }
 

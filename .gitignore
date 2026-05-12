@@ -1,3 +1,11 @@
 node_modules
 .env
 
+
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+
+.vscode/

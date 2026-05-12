@@ -5,6 +5,7 @@ import '../services/auth_service.dart';
 import 'home_screen.dart';
 import 'forgot_password_screen.dart';
 
+// Imports de Widgets (Gráficos)
 import '../widgets/graphics/activity_bars_widget.dart';
 import '../widgets/graphics/bar_chart_widget.dart';
 import '../widgets/graphics/donut_chart_widget.dart';
@@ -45,10 +46,12 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _submit() async {
     final email = _emailController.text.trim();
     final senha = _senhaController.text.trim();
+    
     if (email.isEmpty || senha.isEmpty) {
       _showSnack('Preencha todos os campos', AppColors.red);
       return;
     }
+
     setState(() => _loading = true);
     try {
       final api = ApiService();
@@ -87,102 +90,34 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final isDesktop = screenWidth > 900;
+    final isDesktop = screenWidth > 1100;
+
+    if (!isDesktop) return Scaffold(backgroundColor: AppColors.bg, body: _buildLeftPanel());
 
     return Scaffold(
       backgroundColor: AppColors.bg,
-      body: isDesktop
-          ? Row(
-              children: [
-                Expanded(
-                  flex: 4,
-                  child: _buildLeftPanel(),
-                ),
-                Expanded(
-                  flex: 6,
-                  child: _buildRightPanel(),
-                ),
-              ],
-            )
-          : _buildLeftPanel(),
+      body: Row(
+        children: [
+          Expanded(
+            flex: 4,
+            child: _buildLeftPanel(),
+          ),
+          Expanded(
+            flex: 8,
+            child: _buildRightPanel(),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildLeftPanel() {
     return Center(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
+        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 420),
+          constraints: const BoxConstraints(maxWidth: 360),
           child: _buildForm(),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRightPanel() {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF0b0d14),
-        border: Border(
-          left: BorderSide(color: AppColors.border.withOpacity(0.5), width: 1),
-        ),
-      ),
-      child: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(48),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 800),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const StatPillsRow(),
-                const SizedBox(height: 24),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Expanded(
-                      flex: 5,
-                      child: SizedBox(
-                        height: 280,
-                        child: LineChartWidget(),
-                      ),
-                    ),
-                    SizedBox(width: 24),
-                    Expanded(
-                      flex: 4,
-                      child: SizedBox(
-                        height: 280,
-                        child: DonutChartWidget(),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Expanded(
-                      flex: 4,
-                      child: SizedBox(
-                        height: 280,
-                        child: BarChartWidget(),
-                      ),
-                    ),
-                    SizedBox(width: 24),
-                    Expanded(
-                      flex: 5,
-                      child: SizedBox(
-                        height: 280,
-                        child: ActivityBarsWidget(),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
         ),
       ),
     );
@@ -190,31 +125,19 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget _buildForm() {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
+        // LOGO SECTION
         Container(
-          width: 56,
-          height: 56,
-          decoration: BoxDecoration(
-            color: AppColors.accent,
-            borderRadius: BorderRadius.circular(14),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.accent.withOpacity(0.35),
-                blurRadius: 20,
-                offset: const Offset(0, 6),
-              ),
-            ],
-          ),
-          child: const Center(
-            child: Text('Q',
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.w800)),
-          ),
-        ),
-        const SizedBox(height: 12),
+  width: 90,
+  height: 90,
+  child: Image.asset(
+    'assets/Logo QueryGen (1).png',
+    fit: BoxFit.contain,
+  ),
+),
+        const SizedBox(height: 6),
         RichText(
           text: const TextSpan(children: [
             TextSpan(
@@ -229,76 +152,103 @@ class _LoginScreenState extends State<LoginScreen> {
                     color: AppColors.accent2,
                     fontSize: 18,
                     fontWeight: FontWeight.w700)),
-            TextSpan(
-                text: ' AI',
-                style: TextStyle(
-                    color: AppColors.text,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700)),
           ]),
         ),
-        const SizedBox(height: 36),
+        const SizedBox(height: 20),
+        
         const Text(
-          'Bem vindo de volta!',
+          'Bem vindo!',
           style: TextStyle(
               color: AppColors.text,
-              fontSize: 26,
+              fontSize: 24,
               fontWeight: FontWeight.w700,
               letterSpacing: -0.5),
         ),
         const SizedBox(height: 8),
         const Text(
-          'Insira seu e-mail e sua senha para continuar',
-          style: TextStyle(color: AppColors.text2, fontSize: 14),
+          'Insira seus dados para acessar a plataforma',
+          style: TextStyle(color: AppColors.text2, fontSize: 13),
           textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 32),
+        const SizedBox(height: 24),
+
+        // TAB SELECTOR COM EFEITO SLIDE
         Container(
+          height: 48,
           decoration: BoxDecoration(
             color: AppColors.surface,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(10),
             border: Border.all(color: AppColors.border),
           ),
-          padding: const EdgeInsets.all(4),
-          child: Row(children: [
-            _buildTab('Entrar', true),
-            _buildTab('Cadastrar', false),
-          ]),
+          child: Stack(
+            children: [
+              // O Indicador que desliza
+              AnimatedAlign(
+                alignment: _isLogin ? Alignment.centerLeft : Alignment.centerRight,
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeInOut,
+                child: FractionallySizedBox(
+                  widthFactor: 0.5,
+                  child: Container(
+                    margin: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: AppColors.accent,
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.accent.withOpacity(0.2),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        )
+                      ]
+                    ),
+                  ),
+                ),
+              ),
+              // As opções de texto
+              Row(
+                children: [
+                  _buildTab('Entrar', true),
+                  _buildTab('Cadastrar', false),
+                ],
+              ),
+            ],
+          ),
         ),
-        const SizedBox(height: 28),
+        const SizedBox(height: 24),
+
         if (!_isLogin) ...[
-          _buildField('Nome', 'Insira seu nome', _nomeController),
-          const SizedBox(height: 18),
+          _buildField('Nome', 'Seu nome completo', _nomeController),
+          const SizedBox(height: 16),
         ],
-        _buildField('E-mail', 'Insira seu e-mail', _emailController,
+        _buildField('E-mail', 'exemplo@email.com', _emailController,
             keyboardType: TextInputType.emailAddress),
-        const SizedBox(height: 18),
+        const SizedBox(height: 16),
         _buildPasswordField(),
+        
         const SizedBox(height: 16),
         if (_isLogin) _buildBottomRow(),
-        const SizedBox(height: 28),
+        const SizedBox(height: 16),
+
         SizedBox(
           width: double.infinity,
-          height: 52,
+          height: 45,
           child: ElevatedButton(
             onPressed: _loading ? null : _submit,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.accent,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              elevation: 0,
+            ),
             child: _loading
                 ? const SizedBox(
                     width: 20,
                     height: 20,
                     child: CircularProgressIndicator(
                         color: Colors.white, strokeWidth: 2))
-                : Text(_isLogin ? 'Entrar' : 'Cadastrar'),
-          ),
-        ),
-        const SizedBox(height: 20),
-        GestureDetector(
-          onTap: () => setState(() {
-            _isLogin = !_isLogin;
-            _clearFields();
-          }),
-          child: RichText(
-            text: const TextSpan(children: []),
+                : Text(_isLogin ? 'Entrar' : 'Criar Conta', 
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
           ),
         ),
       ],
@@ -309,30 +259,21 @@ class _LoginScreenState extends State<LoginScreen> {
     final active = _isLogin == isLoginTab;
     return Expanded(
       child: GestureDetector(
-        onTap: () =>
-            setState(() => {_isLogin = isLoginTab, _clearFields()}),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 11),
-          decoration: BoxDecoration(
-            color: active ? AppColors.accent : Colors.transparent,
-            borderRadius: BorderRadius.circular(9),
-            boxShadow: active
-                ? [
-                    BoxShadow(
-                        color: AppColors.accent.withOpacity(0.3),
-                        blurRadius: 12)
-                  ]
-                : null,
-          ),
-          child: Text(
-            label,
-            textAlign: TextAlign.center,
+        behavior: HitTestBehavior.opaque,
+        onTap: () => setState(() { 
+          _isLogin = isLoginTab; 
+          _clearFields(); 
+        }),
+        child: Center(
+          child: AnimatedDefaultTextStyle(
+            duration: const Duration(milliseconds: 250),
             style: TextStyle(
               color: active ? Colors.white : AppColors.text2,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              fontFamily: 'Inter', // Opcional, ajuste conforme seu tema
             ),
+            child: Text(label),
           ),
         ),
       ),
@@ -345,58 +286,54 @@ class _LoginScreenState extends State<LoginScreen> {
       children: [
         Row(children: [
           SizedBox(
-            width: 20,
-            height: 20,
+            height: 24,
+            width: 24,
             child: Checkbox(
               value: _keepConnected,
-              onChanged: (v) =>
-                  setState(() => _keepConnected = v ?? false),
+              onChanged: (v) => setState(() => _keepConnected = v ?? false),
               activeColor: AppColors.accent,
-              side: const BorderSide(color: AppColors.border, width: 1.5),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(4)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
             ),
           ),
           const SizedBox(width: 8),
-          const Text('Continuar conectado',
-              style: TextStyle(color: AppColors.text2, fontSize: 13)),
+          const Text('Lembrar de mim',
+              style: TextStyle(color: AppColors.text2, fontSize: 12)),
         ]),
         GestureDetector(
           onTap: () => Navigator.push(
             context,
-            MaterialPageRoute(
-                builder: (_) => const ForgotPasswordScreen()),
+            MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
           ),
-          child: const Text('Esqueci minha senha',
+          child: const Text('Esqueci a senha',
               style: TextStyle(
                   color: AppColors.accent2,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500)),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600)),
         ),
       ],
     );
   }
 
-  Widget _buildField(
-    String label,
-    String hint,
-    TextEditingController controller, {
-    TextInputType keyboardType = TextInputType.text,
-  }) {
+  Widget _buildField(String label, String hint, TextEditingController controller, {TextInputType keyboardType = TextInputType.text}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,
-            style: const TextStyle(
-                color: AppColors.text2,
-                fontSize: 13,
-                fontWeight: FontWeight.w500)),
-        const SizedBox(height: 8),
+        Text(label, style: const TextStyle(color: AppColors.text2, fontSize: 12, fontWeight: FontWeight.w500)),
+        const SizedBox(height: 6),
         TextField(
           controller: controller,
           keyboardType: keyboardType,
-          style: const TextStyle(color: AppColors.text, fontSize: 15),
-          decoration: InputDecoration(hintText: hint),
+          style: const TextStyle(color: AppColors.text, fontSize: 14),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: const TextStyle(color: AppColors.text3, fontSize: 13),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.border)),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.border)),
+            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.accent, width: 1.5)),
+            filled: true,
+            fillColor: AppColors.surface,
+          ),
         ),
       ],
     );
@@ -406,30 +343,66 @@ class _LoginScreenState extends State<LoginScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Senha',
-            style: TextStyle(
-                color: AppColors.text2,
-                fontSize: 13,
-                fontWeight: FontWeight.w500)),
-        const SizedBox(height: 8),
+        const Text('Senha', style: TextStyle(color: AppColors.text2, fontSize: 12, fontWeight: FontWeight.w500)),
+        const SizedBox(height: 6),
         TextField(
           controller: _senhaController,
           obscureText: _obscure,
-          style: const TextStyle(color: AppColors.text, fontSize: 15),
+          style: const TextStyle(color: AppColors.text, fontSize: 14),
           decoration: InputDecoration(
-            hintText: 'Insira sua senha',
+            hintText: '••••••••',
+            hintStyle: const TextStyle(color: AppColors.text3, fontSize: 13),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.border)),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.border)),
+            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.accent, width: 1.5)),
+            filled: true,
+            fillColor: AppColors.surface,
             suffixIcon: IconButton(
-              icon: Icon(
-                _obscure ? Icons.visibility_off : Icons.visibility,
-                color: AppColors.text3,
-                size: 20,
-              ),
-              onPressed: () =>
-                  setState(() => _obscure = !_obscure),
+              icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility, color: AppColors.text3, size: 18),
+              onPressed: () => setState(() => _obscure = !_obscure),
             ),
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildRightPanel() {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF0b0d14),
+        border: Border(left: BorderSide(color: AppColors.border.withOpacity(0.5))),
+      ),
+      child: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(40),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 900),
+            child: Column(
+              children: [
+                const StatPillsRow(),
+                const SizedBox(height: 24),
+                Row(
+                  children: const [
+                    Expanded(flex: 5, child: SizedBox(height: 280, child: LineChartWidget())),
+                    SizedBox(width: 24),
+                    Expanded(flex: 4, child: SizedBox(height: 280, child: DonutChartWidget())),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: const [
+                    Expanded(flex: 4, child: SizedBox(height: 280, child: BarChartWidget())),
+                    SizedBox(width: 24),
+                    Expanded(flex: 5, child: SizedBox(height: 280, child: ActivityBarsWidget())),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

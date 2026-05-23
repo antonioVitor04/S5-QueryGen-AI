@@ -14,8 +14,8 @@ class HistoryScreen extends StatefulWidget {
 }
 
 class _HistoryScreenState extends State<HistoryScreen> {
-  List<dynamic> _items      = [];
-  bool          _loading    = true;
+  List<dynamic> _items   = [];
+  bool          _loading = true;
   int?          _loadingId;
 
   @override
@@ -84,64 +84,78 @@ class _HistoryScreenState extends State<HistoryScreen> {
     ));
   }
 
+  // Estilo base para botões dentro dos cards (sobrescreve minimumSize infinito do tema)
+  static final _btnBase = ButtonStyle(
+    minimumSize: WidgetStateProperty.all(Size.zero),
+    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    padding: WidgetStateProperty.all(
+      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+    ),
+  );
+
   @override
   Widget build(BuildContext context) {
     final isWide = Responsive.isWide(context);
-    
+
     return Scaffold(
-      backgroundColor: AppColors.bg,
-      drawer: isWide ? null : const Drawer(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        child: NavBar(currentIndex: 1), // Índice 1 = Histórico
-      ),
+      backgroundColor: AppColors.bgOf(context),
+      drawer: isWide
+          ? null
+          : const Drawer(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              child: NavBar(currentIndex: 1),
+            ),
       body: SafeArea(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Fixa o menu do lado esquerdo no Desktop/Web
             if (isWide) const NavBar(currentIndex: 1),
-            
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // MUDANÇA: Altura fixa de 76 para bater com o menu
                   SizedBox(
                     height: 76,
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
                       child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center, // Centraliza verticalmente
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           if (!isWide)
                             Builder(
                               builder: (ctx) => IconButton(
-                                icon: const Icon(Icons.menu, color: AppColors.text),
-                                onPressed: () => Scaffold.of(ctx).openDrawer(),
+                                icon: Icon(Icons.menu,
+                                    color: AppColors.textOf(context)),
+                                onPressed: () =>
+                                    Scaffold.of(ctx).openDrawer(),
                               ),
                             ),
-                          const Text(
-                            'Histórico', 
-                            style: TextStyle(color: AppColors.text, fontSize: 24, fontWeight: FontWeight.bold)
+                          Text(
+                            'Histórico',
+                            style: TextStyle(
+                                color: AppColors.textOf(context),
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
                     ),
                   ),
-                  const Divider(color: AppColors.border, height: 1),
-                  
-                  // Conteúdo
+                  Divider(color: AppColors.borderOf(context), height: 1),
                   Expanded(
                     child: _loading
                         ? const Center(
-                            child: CircularProgressIndicator(color: AppColors.accent))
+                            child: CircularProgressIndicator(
+                                color: AppColors.accent))
                         : _items.isEmpty
-                            ? _buildEmptyState()
+                            ? _buildEmptyState(context)
                             : RefreshIndicator(
                                 onRefresh: _load,
                                 color: AppColors.accent,
-                                child: isWide ? _buildWebGrid() : _buildMobileList(),
+                                child: isWide
+                                    ? _buildWebGrid(context)
+                                    : _buildMobileList(context),
                               ),
                   ),
                 ],
@@ -153,28 +167,30 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
-          Icon(Icons.history, color: AppColors.text3, size: 48),
-          SizedBox(height: 12),
+        children: [
+          Icon(Icons.history, color: AppColors.text3Of(context), size: 48),
+          const SizedBox(height: 12),
           Text('Nenhum script gerado ainda',
-              style: TextStyle(color: AppColors.text2, fontSize: 15)),
+              style: TextStyle(
+                  color: AppColors.text2Of(context), fontSize: 15)),
         ],
       ),
     );
   }
 
-  Widget _buildWebGrid() {
+  Widget _buildWebGrid(BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(28),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('${_items.length} scripts gerados',
-              style: const TextStyle(color: AppColors.text2, fontSize: 13)),
+              style: TextStyle(
+                  color: AppColors.text2Of(context), fontSize: 13)),
           const SizedBox(height: 20),
           LayoutBuilder(
             builder: (context, constraints) {
@@ -182,10 +198,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
               return Wrap(
                 spacing: 14,
                 runSpacing: 14,
-                children: _items.map((item) => SizedBox(
-                  width: cardWidth,
-                  child: _buildCard(item),
-                )).toList(),
+                children: _items
+                    .map((item) => SizedBox(
+                          width: cardWidth,
+                          child: _buildCard(context, item),
+                        ))
+                    .toList(),
               );
             },
           ),
@@ -194,28 +212,32 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
-  Widget _buildMobileList() {
+  Widget _buildMobileList(BuildContext context) {
     return ListView.separated(
       padding: const EdgeInsets.all(16),
       itemCount: _items.length,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
-      itemBuilder: (_, i) => _buildCard(_items[i]),
+      itemBuilder: (_, i) => _buildCard(context, _items[i]),
     );
   }
 
-  Widget _buildCard(dynamic item) {
+  Widget _buildCard(BuildContext context, dynamic item) {
     final isLoadingThis = _loadingId == item['id'];
-    final grafico       = item['grafico'] ?? 'barra';
+    final grafico = item['grafico'] ?? 'barra';
+
+    final panelColor  = AppColors.panelOf(context);
+    final borderColor = AppColors.borderOf(context);
+    final surfaceColor = AppColors.surfaceOf(context);
 
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.panel,
+        color: panelColor,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: borderColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min, // altura automática
+        mainAxisSize: MainAxisSize.min,
         children: [
           // Header
           Padding(
@@ -226,8 +248,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 Expanded(
                   child: Text(
                     item['pergunta'] ?? '',
-                    style: const TextStyle(
-                        color: AppColors.text,
+                    style: TextStyle(
+                        color: AppColors.textOf(context),
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                         height: 1.4),
@@ -236,8 +258,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.delete_outline,
-                      color: AppColors.text3, size: 18),
+                  icon: Icon(Icons.delete_outline,
+                      color: AppColors.text3Of(context), size: 18),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
                   onPressed: () => _confirmDelete(item['id']),
@@ -246,32 +268,33 @@ class _HistoryScreenState extends State<HistoryScreen> {
             ),
           ),
 
-          // Data + badge tipo gráfico
+          // Data + badge
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
             child: Row(
               children: [
                 Text(_formatDate(item['created_at']),
-                    style: const TextStyle(
-                        color: AppColors.text3, fontSize: 11)),
+                    style: TextStyle(
+                        color: AppColors.text3Of(context), fontSize: 11)),
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 6, vertical: 2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: AppColors.surface,
+                    color: surfaceColor,
                     borderRadius: BorderRadius.circular(4),
-                    border: Border.all(color: AppColors.border),
+                    border: Border.all(color: borderColor),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(_iconGrafico(grafico),
-                          color: AppColors.text3, size: 10),
+                          color: AppColors.text3Of(context), size: 10),
                       const SizedBox(width: 3),
                       Text(grafico,
-                          style: const TextStyle(
-                              color: AppColors.text3, fontSize: 10)),
+                          style: TextStyle(
+                              color: AppColors.text3Of(context),
+                              fontSize: 10)),
                     ],
                   ),
                 ),
@@ -279,9 +302,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
             ),
           ),
 
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 10),
-            child: Divider(color: AppColors.border, height: 1),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            child: Divider(color: borderColor, height: 1),
           ),
 
           // SQL preview
@@ -289,17 +312,17 @@ class _HistoryScreenState extends State<HistoryScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
               item['sql_gerado'] ?? '',
-              style: const TextStyle(
+              style: TextStyle(
                   fontFamily: 'monospace',
                   fontSize: 11,
-                  color: AppColors.text2,
+                  color: AppColors.text2Of(context),
                   height: 1.6),
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
             ),
           ),
 
-          // Botões
+          // ── Botões ── minimumSize: Size.zero para não herdar double.infinity do tema
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 8, 14, 14),
             child: Row(
@@ -308,30 +331,46 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   onPressed: isLoadingThis ? null : () => _verDados(item),
                   icon: isLoadingThis
                       ? const SizedBox(
-                          width: 12, height: 12,
+                          width: 12,
+                          height: 12,
                           child: CircularProgressIndicator(
                               color: Colors.white, strokeWidth: 2))
                       : Icon(_iconGrafico(grafico), size: 14),
                   label: const Text('Visualizar',
                       style: TextStyle(fontSize: 12)),
                   style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.accent,
+                    foregroundColor: Colors.white,
+                    minimumSize: Size.zero,           // ← fix principal
+                    tapTargetSize:
+                        MaterialTapTargetSize.shrinkWrap,
                     padding: const EdgeInsets.symmetric(
                         horizontal: 14, vertical: 8),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
+                    elevation: 0,
                   ),
                 ),
                 const SizedBox(width: 8),
                 OutlinedButton.icon(
                   onPressed: () {
-                    Clipboard.setData(ClipboardData(
-                        text: item['sql_gerado'] ?? ''));
+                    Clipboard.setData(
+                        ClipboardData(text: item['sql_gerado'] ?? ''));
                     _showSnack('SQL copiado!', AppColors.green);
                   },
                   icon: const Icon(Icons.copy, size: 14),
                   label: const Text('Copiar SQL',
                       style: TextStyle(fontSize: 12)),
                   style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.accent2,
+                    side: BorderSide(color: borderColor),
+                    minimumSize: Size.zero,           // ← fix principal
+                    tapTargetSize:
+                        MaterialTapTargetSize.shrinkWrap,
                     padding: const EdgeInsets.symmetric(
                         horizontal: 14, vertical: 8),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
                   ),
                 ),
               ],
@@ -354,20 +393,20 @@ class _HistoryScreenState extends State<HistoryScreen> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: AppColors.panel,
+        backgroundColor: AppColors.panelOf(context),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
-          side: const BorderSide(color: AppColors.border),
+          side: BorderSide(color: AppColors.borderOf(context)),
         ),
-        title: const Text('Deletar',
-            style: TextStyle(color: AppColors.text)),
-        content: const Text('Remover este script do histórico?',
-            style: TextStyle(color: AppColors.text2)),
+        title: Text('Deletar',
+            style: TextStyle(color: AppColors.textOf(context))),
+        content: Text('Remover este script do histórico?',
+            style: TextStyle(color: AppColors.text2Of(context))),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar',
-                style: TextStyle(color: AppColors.text2)),
+            child: Text('Cancelar',
+                style: TextStyle(color: AppColors.text2Of(context))),
           ),
           TextButton(
             onPressed: () { Navigator.pop(context); _deletar(id); },

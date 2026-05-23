@@ -99,55 +99,52 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final isWide = Responsive.isWide(context);
-    
+
     return Scaffold(
-      backgroundColor: AppColors.bg,
-      drawer: isWide ? null : const Drawer(
+      backgroundColor: AppColors.bgOf(context),
+      drawer: isWide ? null : Drawer(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        child: NavBar(currentIndex: 0), // Índice 0 = Scripts
+        child: NavBar(currentIndex: 0),
       ),
       body: SafeArea(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Fixa o menu do lado esquerdo no Desktop/Web
             if (isWide) const NavBar(currentIndex: 0),
-            
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Cabeçalho da tela formatado igual ao HistoryScreen
-                  // Cabeçalho da tela formatado com a mesma altura do menu
                   SizedBox(
-                    height: 76, // <-- MESMA ALTURA DA LOGO
+                    height: 76,
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
                       child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center, // <-- CENTRALIZA COM A LOGO
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           if (!isWide)
                             Builder(
                               builder: (ctx) => IconButton(
-                                icon: const Icon(Icons.menu, color: AppColors.text),
+                                icon: Icon(Icons.menu, color: AppColors.textOf(context)),
                                 onPressed: () => Scaffold.of(ctx).openDrawer(),
                               ),
                             ),
                           if (!isWide) const SizedBox(width: 8),
-                          const Text(
-                            'Scripts', // (No histórico, mude aqui para 'Histórico')
-                            style: TextStyle(color: AppColors.text, fontSize: 24, fontWeight: FontWeight.bold)
+                          Text(
+                            'Scripts',
+                            style: TextStyle(
+                                color: AppColors.textOf(context),
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
                     ),
                   ),
-                  const Divider(color: AppColors.border, height: 1),
-                  
-                  // Conteúdo dividido: Input (Esquerda) e Resultados (Direita) na Web
+                  Divider(color: AppColors.borderOf(context), height: 1),
                   Expanded(
-                    child: isWide ? _buildWebContent() : _buildMobileContent(),
+                    child: isWide ? _buildWebContent(context) : _buildMobileContent(context),
                   ),
                 ],
               ),
@@ -158,35 +155,35 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildWebContent() {
+  Widget _buildWebContent(BuildContext context) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
           width: 420,
           height: double.infinity,
-          decoration: const BoxDecoration(
-            color: AppColors.bg,
-            border: Border(right: BorderSide(color: AppColors.border)),
+          decoration: BoxDecoration(
+            color: AppColors.bgOf(context),
+            border: Border(right: BorderSide(color: AppColors.borderOf(context))),
           ),
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(32),
-            child: _buildInputSection(),
+            child: _buildInputSection(context),
           ),
         ),
         Expanded(
           child: _sql == null
-              ? _buildEmptyState()
+              ? _buildEmptyState(context)
               : SingleChildScrollView(
                   padding: const EdgeInsets.all(32),
                   child: Column(
                     children: [
-                      _buildResultCard(),
+                      _buildResultCard(context),
                       if (_dados.isNotEmpty) ...[
                         const SizedBox(height: 20),
-                        _buildChartCard(),
+                        _buildChartCard(context),
                         const SizedBox(height: 20),
-                        _buildTableCard(),
+                        _buildTableCard(context),
                       ],
                     ],
                   ),
@@ -196,21 +193,21 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildMobileContent() {
+  Widget _buildMobileContent(BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildInputSection(),
+          _buildInputSection(context),
           if (_sql != null) ...[
             const SizedBox(height: 24),
-            _buildResultCard(),
+            _buildResultCard(context),
             if (_dados.isNotEmpty) ...[
               const SizedBox(height: 16),
-              _buildChartCard(),
+              _buildChartCard(context),
               const SizedBox(height: 16),
-              _buildTableCard(),
+              _buildTableCard(context),
             ],
           ],
         ],
@@ -218,40 +215,40 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildInputSection() {
+  Widget _buildInputSection(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 8),
-        const Text(
+        Text(
           'O que você quer consultar?',
           style: TextStyle(
-              color: AppColors.text,
+              color: AppColors.textOf(context),
               fontSize: 22,
               fontWeight: FontWeight.w700,
               letterSpacing: -0.5),
         ),
         const SizedBox(height: 6),
-        const Text(
+        Text(
           'Descreva em português o que precisa extrair do SAP',
-          style: TextStyle(color: AppColors.text2, fontSize: 14),
+          style: TextStyle(color: AppColors.text2Of(context), fontSize: 14),
         ),
         const SizedBox(height: 20),
         Container(
           decoration: BoxDecoration(
-            color: Colors.transparent, // <--- AQUI: Removido o AppColors.surface
+            color: Colors.transparent,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(color: AppColors.borderOf(context)),
           ),
           child: TextField(
             controller: _controller,
             maxLines: 4,
-            style: const TextStyle(
-                color: AppColors.text, fontSize: 15, height: 1.5),
-            decoration: const InputDecoration(
+            style: TextStyle(color: AppColors.textOf(context), fontSize: 15, height: 1.5),
+            decoration: InputDecoration(
               hintText: 'Ex: Quero ver o faturamento dos últimos 3 meses por cliente',
+              hintStyle: TextStyle(color: AppColors.text3Of(context)),
               border: InputBorder.none,
-              contentPadding: EdgeInsets.all(16),
+              contentPadding: const EdgeInsets.all(16),
             ),
           ),
         ),
@@ -264,16 +261,15 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: _loading
                 ? const SizedBox(
                     width: 18, height: 18,
-                    child: CircularProgressIndicator(
-                        color: Colors.white, strokeWidth: 2))
+                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                 : const Icon(Icons.auto_awesome, size: 18),
             label: Text(_loading ? 'Gerando...' : 'Gerar Script SQL'),
           ),
         ),
         const SizedBox(height: 24),
-        const Text('Sugestões',
+        Text('Sugestões',
             style: TextStyle(
-                color: AppColors.text2,
+                color: AppColors.text2Of(context),
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
                 letterSpacing: 0.5)),
@@ -284,16 +280,14 @@ class _HomeScreenState extends State<HomeScreen> {
           children: _sugestoes.map((s) => GestureDetector(
             onTap: () => setState(() => _controller.text = s),
             child: Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.transparent, // <--- AQUI: Removido o AppColors.surface
+                color: Colors.transparent,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppColors.border),
+                border: Border.all(color: AppColors.borderOf(context)),
               ),
               child: Text(s,
-                  style: const TextStyle(
-                      color: AppColors.text2, fontSize: 12)),
+                  style: TextStyle(color: AppColors.text2Of(context), fontSize: 12)),
             ),
           )).toList(),
         ),
@@ -301,7 +295,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -309,38 +303,36 @@ class _HomeScreenState extends State<HomeScreen> {
           Container(
             width: 72, height: 72,
             decoration: BoxDecoration(
-              color: Colors.transparent, // <--- AQUI: Removido o AppColors.surface para combinar
+              color: Colors.transparent,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: AppColors.borderOf(context)),
             ),
-            child: const Icon(Icons.query_stats,
-                color: AppColors.text3, size: 32),
+            child: Icon(Icons.query_stats, color: AppColors.text3Of(context), size: 32),
           ),
           const SizedBox(height: 16),
-          const Text('Nenhuma consulta ainda',
+          Text('Nenhuma consulta ainda',
               style: TextStyle(
-                  color: AppColors.text2,
+                  color: AppColors.text2Of(context),
                   fontSize: 15,
                   fontWeight: FontWeight.w500)),
           const SizedBox(height: 6),
-          const Text('Faça uma pergunta no painel ao lado',
-              style: TextStyle(color: AppColors.text3, fontSize: 13)),
+          Text('Faça uma pergunta no painel ao lado',
+              style: TextStyle(color: AppColors.text3Of(context), fontSize: 13)),
         ],
       ),
     );
   }
 
-  Widget _buildResultCard() {
+  Widget _buildResultCard(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.panel,
+        color: AppColors.panelOf(context),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.borderOf(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
             child: Row(
@@ -349,15 +341,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 Expanded(
                   child: Text(
                     _descricao ?? 'Script gerado',
-                    style: const TextStyle(
-                        color: AppColors.text,
+                    style: TextStyle(
+                        color: AppColors.textOf(context),
                         fontSize: 14,
                         fontWeight: FontWeight.w600),
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: AppColors.green.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(5),
@@ -371,16 +362,13 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
-
-          // Tags de tabelas
           if (_tabelas.isNotEmpty)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
               child: Wrap(
                 spacing: 6,
                 children: _tabelas.map((t) => Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: AppColors.accent.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(5),
@@ -393,52 +381,44 @@ class _HomeScreenState extends State<HomeScreen> {
                 )).toList(),
               ),
             ),
-
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 12),
-            child: Divider(color: AppColors.border, height: 1),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Divider(color: AppColors.borderOf(context), height: 1),
           ),
-
-          // SQL
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: SelectableText(
               _sql!,
-              style: const TextStyle(
+              style: TextStyle(
                   fontFamily: 'monospace',
                   fontSize: 13,
-                  color: AppColors.text2,
+                  color: AppColors.text2Of(context),
                   height: 1.7),
             ),
           ),
-
-          // Botões — proporcionais com Row
           Padding(
             padding: const EdgeInsets.all(12),
             child: Row(
               children: [
-                // Copiar SQL
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: _copiarSQL,
                     icon: const Icon(Icons.copy, size: 15),
-                    label: const Text('Copiar SQL',
-                        style: TextStyle(fontSize: 13)),
+                    label: const Text('Copiar SQL', style: TextStyle(fontSize: 13)),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 11),
                       minimumSize: Size.zero,
+                      side: BorderSide(color: AppColors.borderOf(context)),
                     ),
                   ),
                 ),
-                // Botão visualizar gráfico — só aparece se tiver dados
                 if (_dados.isNotEmpty) ...[
                   const SizedBox(width: 8),
                   Expanded(
                     child: ElevatedButton.icon(
                       onPressed: _abrirGrafico,
                       icon: Icon(_iconGrafico(_tipoGrafico), size: 15),
-                      label: const Text('Ver gráfico',
-                          style: TextStyle(fontSize: 13)),
+                      label: const Text('Ver gráfico', style: TextStyle(fontSize: 13)),
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 11),
                         minimumSize: Size.zero,
@@ -454,35 +434,33 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildChartCard() {
+  Widget _buildChartCard(BuildContext context) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.panel,
+        color: AppColors.panelOf(context),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.borderOf(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(_iconGrafico(_tipoGrafico),
-                  color: AppColors.accent2, size: 16),
+              Icon(_iconGrafico(_tipoGrafico), color: AppColors.accent2, size: 16),
               const SizedBox(width: 8),
               Text(
                 _labelGrafico(_tipoGrafico),
-                style: const TextStyle(
-                    color: AppColors.text2,
+                style: TextStyle(
+                    color: AppColors.text2Of(context),
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
                     letterSpacing: 0.5),
               ),
               const Spacer(),
               Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: AppColors.accent.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(5),
@@ -496,45 +474,38 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
           const SizedBox(height: 20),
-          ChartWidget(
-            dados: _dados,
-            tipoGrafico: _tipoGrafico,
-            eixoX: _eixoX,
-            eixoY: _eixoY,
-          ),
+          ChartWidget(dados: _dados, tipoGrafico: _tipoGrafico, eixoX: _eixoX, eixoY: _eixoY),
         ],
       ),
     );
   }
 
-  Widget _buildTableCard() {
+  Widget _buildTableCard(BuildContext context) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.panel,
+        color: AppColors.panelOf(context),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.borderOf(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.table_chart_outlined,
-                  color: AppColors.text2, size: 16),
+              Icon(Icons.table_chart_outlined, color: AppColors.text2Of(context), size: 16),
               const SizedBox(width: 8),
-              const Text('TABELA DE DADOS',
+              Text('TABELA DE DADOS',
                   style: TextStyle(
-                      color: AppColors.text2,
+                      color: AppColors.text2Of(context),
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
                       letterSpacing: 0.5)),
               const Spacer(),
               if (_dados.length > 100)
-                const Text('Exibindo 100 primeiros',
-                    style: TextStyle(
-                        color: AppColors.text3, fontSize: 11)),
+                Text('Exibindo 100 primeiros',
+                    style: TextStyle(color: AppColors.text3Of(context), fontSize: 11)),
             ],
           ),
           const SizedBox(height: 14),

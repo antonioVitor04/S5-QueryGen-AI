@@ -22,12 +22,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _senhaController   = TextEditingController();
   final _confirmController = TextEditingController();
 
-  bool        _loading        = false;
-  bool        _loadingPerfil  = true;
-  bool        _obscureSenha   = true;
-  bool        _obscureConfirm = true;
-  Uint8List?  _fotoBytes;
-  bool        _fotoChanged    = false;
+  bool       _loading        = false;
+  bool       _loadingPerfil  = true;
+  bool       _obscureSenha   = true;
+  bool       _obscureConfirm = true;
+  Uint8List? _fotoBytes;
+  bool       _fotoChanged    = false;
 
   @override
   void initState() {
@@ -51,9 +51,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       Uint8List? fotoBytes;
       final fotoRaw = data['foto'] as String?;
       if (fotoRaw != null && fotoRaw.isNotEmpty) {
-        try {
-          fotoBytes = base64Decode(fotoRaw);
-        } catch (_) {}
+        try { fotoBytes = base64Decode(fotoRaw); } catch (_) {}
       }
       setState(() {
         _nomeController.text  = data['nome']  ?? '';
@@ -76,8 +74,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _alterarFoto() async {
     final picker = ImagePicker();
-
-    // No web, maxWidth/maxHeight/imageQuality são ignorados pelo plugin
     final XFile? picked = kIsWeb
         ? await picker.pickImage(source: ImageSource.gallery)
         : await picker.pickImage(
@@ -86,74 +82,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
             maxHeight: 400,
             imageQuality: 80,
           );
-
     if (picked == null) return;
-
     Uint8List bytes = await picked.readAsBytes();
     if (kIsWeb) bytes = await _compressImage(bytes);
-
-    setState(() {
-      _fotoBytes   = bytes;
-      _fotoChanged = true;
-    });
+    setState(() { _fotoBytes = bytes; _fotoChanged = true; });
   }
 
   Future<Uint8List> _compressImage(Uint8List bytes) async {
     final codec = await ui.instantiateImageCodec(
-      bytes,
-      targetWidth: 400,
-      targetHeight: 400,
-    );
+        bytes, targetWidth: 400, targetHeight: 400);
     final frame    = await codec.getNextFrame();
-    final byteData = await frame.image.toByteData(
-      format: ui.ImageByteFormat.png,
-    );
+    final byteData = await frame.image.toByteData(format: ui.ImageByteFormat.png);
     return byteData!.buffer.asUint8List();
   }
 
   Future<void> _salvarPerfil() async {
     FocusScope.of(context).unfocus();
-
     final nome    = _nomeController.text.trim();
     final senha   = _senhaController.text.trim();
     final confirm = _confirmController.text.trim();
 
     if (senha.isNotEmpty) {
-      if (senha.length < 8) {
-        _showSnack('A senha deve ter pelo menos 8 caracteres', AppColors.red);
-        return;
-      }
-      if (!RegExp(r'[A-Z]').hasMatch(senha)) {
-        _showSnack('A senha deve conter pelo menos uma letra maiúscula', AppColors.red);
-        return;
-      }
-      if (!RegExp(r'[0-9]').hasMatch(senha)) {
-        _showSnack('A senha deve conter pelo menos um número', AppColors.red);
-        return;
-      }
-      if (!RegExp(r'[!@#$%^&*()_+\-=\[\]{};:"\\|,.<>/?]').hasMatch(senha)) {
-        _showSnack('A senha deve conter pelo menos um caractere especial', AppColors.red);
-        return;
-      }
-      if (senha != confirm) {
-        _showSnack('As senhas não coincidem', AppColors.red);
-        return;
-      }
+      if (senha.length < 8) { _showSnack('A senha deve ter pelo menos 8 caracteres', AppColors.red); return; }
+      if (!RegExp(r'[A-Z]').hasMatch(senha)) { _showSnack('A senha deve conter pelo menos uma letra maiúscula', AppColors.red); return; }
+      if (!RegExp(r'[0-9]').hasMatch(senha)) { _showSnack('A senha deve conter pelo menos um número', AppColors.red); return; }
+      if (!RegExp(r'[!@#$%^&*()_+\-=\[\]{};:"\\|,.<>/?]').hasMatch(senha)) { _showSnack('A senha deve conter pelo menos um caractere especial', AppColors.red); return; }
+      if (senha != confirm) { _showSnack('As senhas não coincidem', AppColors.red); return; }
     }
 
     setState(() => _loading = true);
-
     try {
       await ApiService().updatePerfil(
         nome:      nome.isNotEmpty ? nome : null,
-        foto:      _fotoChanged && _fotoBytes != null
-                       ? base64Encode(_fotoBytes!)
-                       : null,
+        foto:      _fotoChanged && _fotoBytes != null ? base64Encode(_fotoBytes!) : null,
         novaSenha: senha.isNotEmpty ? senha : null,
       );
-
       if (nome.isNotEmpty) await AuthService().saveNome(nome);
-
       if (!mounted) return;
       setState(() => _fotoChanged = false);
       _showSnack('Perfil atualizado com sucesso!', AppColors.green);
@@ -181,7 +145,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final isWide = Responsive.isWide(context);
 
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: AppColors.bgOf(context),
       drawer: isWide
           ? null
           : const Drawer(
@@ -194,7 +158,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (isWide) const NavBar(currentIndex: 3),
-
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -209,17 +172,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           if (!isWide)
                             Builder(
                               builder: (ctx) => IconButton(
-                                icon: const Icon(Icons.menu,
-                                    color: AppColors.text),
-                                onPressed: () =>
-                                    Scaffold.of(ctx).openDrawer(),
+                                icon: Icon(Icons.menu, color: AppColors.textOf(context)),
+                                onPressed: () => Scaffold.of(ctx).openDrawer(),
                               ),
                             ),
                           if (!isWide) const SizedBox(width: 8),
-                          const Text(
+                          Text(
                             'Meu Perfil',
                             style: TextStyle(
-                                color: AppColors.text,
+                                color: AppColors.textOf(context),
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold),
                           ),
@@ -227,45 +188,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                   ),
-                  const Divider(color: AppColors.border, height: 1),
-
+                  Divider(color: AppColors.borderOf(context), height: 1),
                   Expanded(
                     child: _loadingPerfil
-                        ? const Center(
-                            child: CircularProgressIndicator(
-                                color: AppColors.accent))
+                        ? const Center(child: CircularProgressIndicator(color: AppColors.accent))
                         : SingleChildScrollView(
                             padding: const EdgeInsets.all(24),
                             child: Center(
                               child: ConstrainedBox(
-                                constraints:
-                                    const BoxConstraints(maxWidth: 600),
+                                constraints: const BoxConstraints(maxWidth: 600),
                                 child: Column(
                                   children: [
                                     const SizedBox(height: 16),
-                                    _buildAvatar(),
+                                    _buildAvatar(context),
                                     const SizedBox(height: 32),
-                                    _buildForm(),
+                                    _buildForm(context),
                                     const SizedBox(height: 24),
                                     SizedBox(
                                       width: double.infinity,
                                       height: 52,
                                       child: ElevatedButton.icon(
-                                        onPressed:
-                                            _loading ? null : _salvarPerfil,
+                                        onPressed: _loading ? null : _salvarPerfil,
                                         icon: _loading
                                             ? const SizedBox(
-                                                width: 18,
-                                                height: 18,
+                                                width: 18, height: 18,
                                                 child: CircularProgressIndicator(
-                                                    color: Colors.white,
-                                                    strokeWidth: 2))
-                                            : const Icon(
-                                                Icons.save_outlined,
-                                                size: 20),
-                                        label: Text(_loading
-                                            ? 'Salvando...'
-                                            : 'Salvar Alterações'),
+                                                    color: Colors.white, strokeWidth: 2))
+                                            : const Icon(Icons.save_outlined, size: 20),
+                                        label: Text(_loading ? 'Salvando...' : 'Salvar Alterações'),
                                       ),
                                     ),
                                     const SizedBox(height: 32),
@@ -284,37 +234,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildAvatar() {
+  Widget _buildAvatar(BuildContext context) {
     return Stack(
       children: [
         GestureDetector(
           onTap: _alterarFoto,
           child: Container(
-            width: 110,
-            height: 110,
+            width: 110, height: 110,
             decoration: BoxDecoration(
-              color: AppColors.panel,
+              color: AppColors.panelOf(context),
               shape: BoxShape.circle,
-              border: Border.all(color: AppColors.border, width: 2),
+              border: Border.all(color: AppColors.borderOf(context), width: 2),
             ),
             child: ClipOval(
               child: _fotoBytes != null
-                  ? Image.memory(
-                      _fotoBytes!,
-                      fit: BoxFit.cover,
-                      width: 110,
-                      height: 110,
-                    )
-                  : const Center(
-                      child: Icon(Icons.person,
-                          size: 50, color: AppColors.text3),
-                    ),
+                  ? Image.memory(_fotoBytes!, fit: BoxFit.cover, width: 110, height: 110)
+                  : Center(child: Icon(Icons.person, size: 50, color: AppColors.text3Of(context))),
             ),
           ),
         ),
         Positioned(
-          bottom: 0,
-          right: 0,
+          bottom: 0, right: 0,
           child: GestureDetector(
             onTap: _alterarFoto,
             child: Container(
@@ -322,10 +262,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               decoration: BoxDecoration(
                 color: AppColors.accent,
                 shape: BoxShape.circle,
-                border: Border.all(color: AppColors.bg, width: 3),
+                border: Border.all(color: AppColors.bgOf(context), width: 3),
               ),
-              child: const Icon(Icons.camera_alt,
-                  size: 16, color: Colors.white),
+              child: const Icon(Icons.camera_alt, size: 16, color: Colors.white),
             ),
           ),
         ),
@@ -333,92 +272,71 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildForm() {
+  Widget _buildForm(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppColors.panel,
+        color: AppColors.panelOf(context),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.borderOf(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('DADOS PESSOAIS',
+          Text('DADOS PESSOAIS',
               style: TextStyle(
-                  color: AppColors.text2,
+                  color: AppColors.text2Of(context),
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                   letterSpacing: 0.5)),
           const SizedBox(height: 20),
-
-          _buildField('Nome completo', 'Seu nome', _nomeController),
+          _buildField(context, 'Nome completo', 'Seu nome', _nomeController),
           const SizedBox(height: 20),
-
-          _buildReadOnlyField('E-mail', _emailController),
+          _buildReadOnlyField(context, 'E-mail', _emailController),
           const SizedBox(height: 32),
-
-          const Divider(color: AppColors.border, height: 1),
+          Divider(color: AppColors.borderOf(context), height: 1),
           const SizedBox(height: 24),
-
-          const Text('ALTERAR SENHA',
+          Text('ALTERAR SENHA',
               style: TextStyle(
-                  color: AppColors.text2,
+                  color: AppColors.text2Of(context),
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                   letterSpacing: 0.5)),
           const SizedBox(height: 8),
-          const Text('Deixe em branco caso não queira alterar',
-              style: TextStyle(color: AppColors.text3, fontSize: 13)),
+          Text('Deixe em branco caso não queira alterar',
+              style: TextStyle(color: AppColors.text3Of(context), fontSize: 13)),
           const SizedBox(height: 20),
-
-          _buildField(
-            'Nova senha',
-            'Mínimo 8 caracteres',
-            _senhaController,
-            obscure: _obscureSenha,
-            toggleObscure: () =>
-                setState(() => _obscureSenha = !_obscureSenha),
-          ),
+          _buildField(context, 'Nova senha', 'Mínimo 8 caracteres', _senhaController,
+              obscure: _obscureSenha,
+              toggleObscure: () => setState(() => _obscureSenha = !_obscureSenha)),
           const SizedBox(height: 6),
-          const Text(
-            'Use 8+ caracteres com maiúscula, número e caractere especial.',
-            style: TextStyle(
-                color: AppColors.text3, fontSize: 11, height: 1.4),
-          ),
+          Text('Use 8+ caracteres com maiúscula, número e caractere especial.',
+              style: TextStyle(color: AppColors.text3Of(context), fontSize: 11, height: 1.4)),
           const SizedBox(height: 20),
-
-          _buildField(
-            'Confirmar nova senha',
-            'Repita a senha',
-            _confirmController,
-            obscure: _obscureConfirm,
-            toggleObscure: () =>
-                setState(() => _obscureConfirm = !_obscureConfirm),
-          ),
+          _buildField(context, 'Confirmar nova senha', 'Repita a senha', _confirmController,
+              obscure: _obscureConfirm,
+              toggleObscure: () => setState(() => _obscureConfirm = !_obscureConfirm)),
         ],
       ),
     );
   }
 
-  Widget _buildReadOnlyField(
-      String label, TextEditingController controller) {
+  Widget _buildReadOnlyField(BuildContext context, String label, TextEditingController controller) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label,
-            style: const TextStyle(
-                color: AppColors.text2,
+            style: TextStyle(
+                color: AppColors.text2Of(context),
                 fontSize: 13,
                 fontWeight: FontWeight.w500)),
         const SizedBox(height: 8),
         TextField(
           controller: controller,
           readOnly: true,
-          style: const TextStyle(color: AppColors.text3, fontSize: 15),
-          decoration: const InputDecoration(
-            suffixIcon: Icon(Icons.lock_outline,
-                color: AppColors.text3, size: 16),
+          style: TextStyle(color: AppColors.text3Of(context), fontSize: 15),
+          decoration: InputDecoration(
+            suffixIcon: Icon(Icons.lock_outline, color: AppColors.text3Of(context), size: 16),
           ),
         ),
       ],
@@ -426,6 +344,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildField(
+    BuildContext context,
     String label,
     String hint,
     TextEditingController controller, {
@@ -436,23 +355,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label,
-            style: const TextStyle(
-                color: AppColors.text2,
+            style: TextStyle(
+                color: AppColors.text2Of(context),
                 fontSize: 13,
                 fontWeight: FontWeight.w500)),
         const SizedBox(height: 8),
         TextField(
           controller: controller,
           obscureText: obscure,
-          style: const TextStyle(color: AppColors.text, fontSize: 15),
+          style: TextStyle(color: AppColors.textOf(context), fontSize: 15),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(color: AppColors.text3),
+            hintStyle: TextStyle(color: AppColors.text3Of(context)),
             suffixIcon: toggleObscure != null
                 ? IconButton(
                     icon: Icon(
                       obscure ? Icons.visibility_off : Icons.visibility,
-                      color: AppColors.text3,
+                      color: AppColors.text3Of(context),
                       size: 20,
                     ),
                     onPressed: toggleObscure,

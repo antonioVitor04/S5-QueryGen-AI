@@ -148,25 +148,27 @@ class _ProfileModalState extends State<_ProfileModal> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
+    final screenWidth  = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
     final isWide = screenWidth > 700;
 
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: EdgeInsets.symmetric(
         horizontal: isWide ? 80 : 16,
-        vertical: 32,
+        vertical: 16,                  // menos margem vertical → modal maior
       ),
       child: Container(
-        constraints: const BoxConstraints(maxWidth: 560, maxHeight: 680),
+        constraints: const BoxConstraints(maxWidth: 560),
         decoration: BoxDecoration(
           color: AppColors.bgOf(context),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: AppColors.borderOf(context)),
         ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            // Header do modal
+            // Header
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
               decoration: BoxDecoration(
@@ -193,24 +195,26 @@ class _ProfileModalState extends State<_ProfileModal> {
               ),
             ),
 
-            // Conteúdo
-            Expanded(
-              child: _loadingPerfil
-                  ? const Center(
-                      child: CircularProgressIndicator(color: AppColors.accent))
-                  : SingleChildScrollView(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        children: [
-                          _buildAvatar(context),
-                          const SizedBox(height: 24),
-                          _buildForm(context),
-                        ],
-                      ),
-                    ),
-            ),
+            // Conteúdo — sem scroll, tudo visível
+            if (_loadingPerfil)
+              const Padding(
+                padding: EdgeInsets.all(48),
+                child: Center(child: CircularProgressIndicator(color: AppColors.accent)),
+              )
+            else
+              Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildAvatar(context),
+                    const SizedBox(height: 20),
+                    _buildForm(context),
+                  ],
+                ),
+              ),
 
-            // Footer com botão salvar
+            // Footer
             if (!_loadingPerfil)
               Container(
                 padding: const EdgeInsets.fromLTRB(24, 12, 24, 20),
@@ -225,15 +229,13 @@ class _ProfileModalState extends State<_ProfileModal> {
                     icon: _loading
                         ? const SizedBox(
                             width: 16, height: 16,
-                            child: CircularProgressIndicator(
-                                color: Colors.white, strokeWidth: 2))
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                         : const Icon(Icons.save_outlined, size: 18),
                     label: Text(_loading ? 'Salvando...' : 'Salvar Alterações'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.accent,
                       foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       elevation: 0,
                     ),
                   ),
@@ -295,11 +297,7 @@ class _ProfileModalState extends State<_ProfileModal> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('DADOS PESSOAIS',
-              style: TextStyle(
-                  color: AppColors.text2Of(context),
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.5)),
+              style: TextStyle(color: AppColors.text2Of(context), fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 0.5)),
           const SizedBox(height: 16),
           _buildField(context, 'Nome completo', 'Seu nome', _nomeController),
           const SizedBox(height: 16),
@@ -308,11 +306,7 @@ class _ProfileModalState extends State<_ProfileModal> {
           Divider(color: AppColors.borderOf(context), height: 1),
           const SizedBox(height: 20),
           Text('ALTERAR SENHA',
-              style: TextStyle(
-                  color: AppColors.text2Of(context),
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.5)),
+              style: TextStyle(color: AppColors.text2Of(context), fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 0.5)),
           const SizedBox(height: 6),
           Text('Deixe em branco caso não queira alterar',
               style: TextStyle(color: AppColors.text3Of(context), fontSize: 12)),
@@ -333,8 +327,7 @@ class _ProfileModalState extends State<_ProfileModal> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,
-            style: TextStyle(color: AppColors.text2Of(context), fontSize: 12, fontWeight: FontWeight.w500)),
+        Text(label, style: TextStyle(color: AppColors.text2Of(context), fontSize: 12, fontWeight: FontWeight.w500)),
         const SizedBox(height: 6),
         TextField(
           controller: controller,
@@ -359,8 +352,7 @@ class _ProfileModalState extends State<_ProfileModal> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,
-            style: TextStyle(color: AppColors.text2Of(context), fontSize: 12, fontWeight: FontWeight.w500)),
+        Text(label, style: TextStyle(color: AppColors.text2Of(context), fontSize: 12, fontWeight: FontWeight.w500)),
         const SizedBox(height: 6),
         TextField(
           controller: controller,
@@ -371,11 +363,8 @@ class _ProfileModalState extends State<_ProfileModal> {
             hintStyle: TextStyle(color: AppColors.text3Of(context)),
             suffixIcon: toggleObscure != null
                 ? IconButton(
-                    icon: Icon(
-                      obscure ? Icons.visibility_off : Icons.visibility,
-                      color: AppColors.text3Of(context),
-                      size: 18,
-                    ),
+                    icon: Icon(obscure ? Icons.visibility_off : Icons.visibility,
+                        color: AppColors.text3Of(context), size: 18),
                     onPressed: toggleObscure,
                   )
                 : null,

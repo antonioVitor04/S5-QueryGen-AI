@@ -149,7 +149,7 @@ class _ProfileModalState extends State<_ProfileModal> {
   @override
   Widget build(BuildContext context) {
     final screenWidth  = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
+    //final screenHeight = MediaQuery.of(context).size.height;
     final isWide = screenWidth > 700;
 
     return Dialog(

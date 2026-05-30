@@ -14,6 +14,7 @@ dependencies:
   fl_chart: ^1.2.0
   image_picker: ^1.1.2
   image_cropper: ^12.2.1
+  shared_preferences: ^2.2.2
 
 dev_dependencies:
   flutter_test:
@@ -22,3 +23,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+      - assets/Logo QueryGen (1).png

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../theme/app_colors.dart';
 
 class BarChartWidget extends StatefulWidget {
   final String label;
@@ -61,7 +60,6 @@ class _BarChartWidgetState extends State<BarChartWidget>
 
   @override
   Widget build(BuildContext context) {
-<<<<<<< HEAD
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, _) {
@@ -147,8 +145,7 @@ class _BarChartWidgetState extends State<BarChartWidget>
                                       ? [
                                           BoxShadow(
                                             color: widget.accentColor
-                                                .withValues(
-                                                    alpha: 0.4 * barT),
+                                                .withValues(alpha: 0.4 * barT),
                                             blurRadius: 14 * barT,
                                             spreadRadius: 1 * barT,
                                             offset: const Offset(0, -2),
@@ -161,64 +158,6 @@ class _BarChartWidgetState extends State<BarChartWidget>
                           ),
                         );
                       }),
-=======
-    final bgColor     = AppColors.panelOf(context);
-    final borderColor = AppColors.borderOf(context);
-    final labelColor  = AppColors.text2Of(context);
-    final valueColor  = AppColors.textOf(context);
-    final barBg1      = AppColors.surfaceOf(context);
-    final barBg2      = AppColors.borderOf(context);
-    final xLabelColor = AppColors.text3Of(context);
-
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: bgColor,
-        border: Border.all(color: borderColor),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: TextStyle(color: labelColor, fontSize: 12)),
-          const SizedBox(height: 4),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Text(value, style: TextStyle(color: valueColor, fontSize: 24, fontWeight: FontWeight.w700)),
-              const SizedBox(width: 8),
-              const Text('▲ 8.3%', style: TextStyle(color: Color(0xFF34d399), fontSize: 12, fontWeight: FontWeight.w500)),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Expanded(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: List.generate(data.length, (i) {
-                final isHighlight = highlights[i];
-                return Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 3),
-                    child: FractionallySizedBox(
-                      heightFactor: data[i],
-                      alignment: Alignment.bottomCenter,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: isHighlight
-                                ? [accentColor, accentColor.withOpacity(0.7)]
-                                : [barBg1, barBg2],
-                            begin: Alignment.bottomCenter,
-                            end: Alignment.topCenter,
-                          ),
-                          borderRadius: const BorderRadius.vertical(top: Radius.circular(5)),
-                          boxShadow: isHighlight
-                              ? [BoxShadow(color: accentColor.withOpacity(0.35), blurRadius: 10, offset: const Offset(0, -2))]
-                              : null,
-                        ),
-                      ),
->>>>>>> fa8d5fd552d9671f017231d83f3d7aa75a54123b
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -234,20 +173,8 @@ class _BarChartWidgetState extends State<BarChartWidget>
               ),
             ),
           ),
-<<<<<<< HEAD
         );
       },
-=======
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: ['Lorem', 'Lorem', 'Lorem', 'Lorem', 'Lorem', 'Lorem', 'Lorem']
-                .map((d) => Text(d, style: TextStyle(color: xLabelColor, fontSize: 9.5)))
-                .toList(),
-          ),
-        ],
-      ),
->>>>>>> fa8d5fd552d9671f017231d83f3d7aa75a54123b
     );
   }
 }

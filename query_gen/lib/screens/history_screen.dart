@@ -206,66 +206,43 @@ class _HistoryScreenState extends State<HistoryScreen> {
         ),
         Padding(
           padding: const EdgeInsets.fromLTRB(14, 8, 14, 14),
-          child: Row(children: [
-            ElevatedButton.icon(
-              onPressed: isLoadingThis ? null : () => _verDados(item),
-              icon: isLoadingThis
-                  ? const SizedBox(width: 12, height: 12,
-                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                  : Icon(_iconGrafico(grafico), size: 14),
-              label: const Text('Visualizar', style: TextStyle(fontSize: 12)),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.accent, foregroundColor: Colors.white,
-                minimumSize: Size.zero, tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                elevation: 0,
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              ElevatedButton.icon(
+                onPressed: isLoadingThis ? null : () => _verDados(item),
+                icon: isLoadingThis
+                    ? const SizedBox(
+                        width: 12, height: 12,
+                        child: CircularProgressIndicator(
+                            color: Colors.white, strokeWidth: 2))
+                    : Icon(_iconGrafico(grafico), size: 14),
+                label: const Text('Visualizar', style: TextStyle(fontSize: 12)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.accent,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size(0, 36),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  elevation: 0,
+                ),
               ),
-            ),
+              OutlinedButton.icon(
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: item['sql_gerado'] ?? ''));
+                  _showSnack('SQL copiado!', AppColors.green);
+                },
+                icon: const Icon(Icons.copy, size: 14),
+                label: const Text('Copiar SQL', style: TextStyle(fontSize: 12)),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(0, 36),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                ),
+              ),
+            ],
           ),
-
-          // Botões
-          // Botões
-          Padding(
-            padding: const EdgeInsets.fromLTRB(14, 8, 14, 14),
-            child: Wrap( // <-- 1. Trocamos Row por Wrap para evitar estouro de tela (overflow)
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                ElevatedButton.icon(
-                  onPressed: isLoadingThis ? null : () => _verDados(item),
-                  icon: isLoadingThis
-                      ? const SizedBox(
-                          width: 12, height: 12,
-                          child: CircularProgressIndicator(
-                              color: Colors.white, strokeWidth: 2))
-                      : Icon(_iconGrafico(grafico), size: 14),
-                  label: const Text('Visualizar',
-                      style: TextStyle(fontSize: 12)),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 8),
-                    minimumSize: const Size(0, 36), // <-- 2. A CORREÇÃO: Anula a largura infinita do tema
-                  ),
-                ),
-                OutlinedButton.icon(
-                  onPressed: () {
-                    Clipboard.setData(ClipboardData(
-                        text: item['sql_gerado'] ?? ''));
-                    _showSnack('SQL copiado!', AppColors.green);
-                  },
-                  icon: const Icon(Icons.copy, size: 14),
-                  label: const Text('Copiar SQL',
-                      style: TextStyle(fontSize: 12)),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 8),
-                    minimumSize: const Size(0, 36), // <-- 3. A CORREÇÃO AQUI TAMBÉM
-                  ),
-                ),
-              ],
-            ),
-          ]),
         ),
       ]),
     );

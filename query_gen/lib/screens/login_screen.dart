@@ -113,72 +113,317 @@ class _LoginScreenState extends State<LoginScreen> {
     ));
   }
 
+  void _showLegalModal(String title, List<Map<String, String>> sections, String subtitle) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: const Color.fromARGB(255, 40, 40, 40), // Fundo escuro das imagens
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 500, maxHeight: 700),
+          child: Stack(
+            children: [
+              // CONTEÚDO DO MODAL
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 40, 24, 24),
+                child: Column(
+                  children: [
+                    // LOGO (Igual à sua definição oficial)
+                    SizedBox(
+                      width: 60,
+                      height: 60,
+                      child: Image.asset('assets/Logo QueryGen (1).png', fit: BoxFit.contain),
+                    ),
+                    const SizedBox(height: 16),
+                    
+                    // TÍTULO
+                    Text(
+                      title,
+                      style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 12),
+                    
+                    // SUBTÍTULO
+                    Text(
+                      subtitle,
+                      style: const TextStyle(color: AppColors.text2, fontSize: 13),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    
+                    // ÁREA DE TEXTO COM SCROLL
+                    Expanded(
+                      child: SingleChildScrollView(
+                        physics: const BouncingScrollPhysics(),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: sections.map((sec) => Padding(
+                            padding: const EdgeInsets.only(bottom: 20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  sec['title']!,
+                                  style: const TextStyle(color: AppColors.accent2, fontSize: 15, fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  sec['content']!,
+                                  style: const TextStyle(color: AppColors.text, fontSize: 14, height: 1.5),
+                                ),
+                              ],
+                            ),
+                          )).toList(),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // BOTÃO FECHAR (X) - Superior Direito
+              Positioned(
+                right: 8,
+                top: 8,
+                child: IconButton(
+                  icon: const Icon(Icons.close, color: AppColors.text3, size: 22),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void showTerms() {
+    _showLegalModal(
+      'Termos de Uso',
+      [
+        {'title': '1. Uso da Plataforma', 'content': 'O usuário se compromete a utilizar o sistema de forma responsável, ética e dentro das leis vigentes. O acesso à plataforma é pessoal e intransferível.'},
+        {'title': '2. Conta do Usuário', 'content': 'Você é responsável pela segurança da sua conta e das informações fornecidas durante o cadastro. Mantenha sua senha em sigilo e não compartilhe suas credenciais.'},
+        {'title': '3. Proibições', 'content': 'É proibido utilizar a plataforma para spam, ataques ou qualquer atividade maliciosa. Tentativas de acesso não autorizado serão reportadas às autoridades competentes.'},
+        {'title': '4. Propriedade Intelectual', 'content': 'Todo o conteúdo disponível na plataforma é protegido por direitos autorais. É vedada a reprodução, distribuição ou modificação sem autorização prévia.'},
+        {'title': '5. Limitação de Responsabilidade', 'content': 'A plataforma não se responsabiliza por danos indiretos decorrentes do uso ou da incapacidade de uso dos serviços oferecidos.'},
+        {'title': '6. Alterações nos Termos', 'content': 'Reservamos o direito de modificar estes termos a qualquer momento. O uso continuado da plataforma após as alterações constitui aceitação dos novos termos.'},
+      ],
+      'Ao utilizar esta plataforma, você concorda com todos os termos e condições estabelecidos neste documento.',
+    );
+  }
+
+  void showPrivacy() {
+    _showLegalModal(
+      'Política de Privacidade',
+      [
+        {'title': '1. Coleta de Dados', 'content': 'Coletamos apenas informações necessárias para o funcionamento da plataforma, como nome, e-mail e dados de uso. Não coletamos dados sensíveis sem consentimento explícito.'},
+        {'title': '2. Compartilhamento', 'content': 'Não compartilhamos seus dados pessoais com terceiros sem autorização, exceto quando exigido por lei ou para prestação dos serviços contratados.'},
+        {'title': '3. Segurança', 'content': 'Aplicamos medidas técnicas e organizacionais para proteger suas informações contra acesso não autorizado, perda ou destruição acidental.'},
+        {'title': '4. Cookies', 'content': 'Utilizamos cookies para melhorar sua experiência. Você pode desativá-los nas configurações do navegador, mas isso pode afetar algumas funcionalidades.'},
+        {'title': '5. Seus Direitos', 'content': 'Você tem direito de acessar, corrigir ou solicitar a exclusão de seus dados pessoais a qualquer momento, conforme previsto pela LGPD.'},
+        {'title': '6. Retenção de Dados', 'content': 'Mantemos seus dados pelo tempo necessário para a prestação dos serviços ou conforme exigido por obrigações legais. Após esse período, os dados são excluídos com segurança.'},
+      ],
+      'Sua privacidade é importante para nós. Todas as informações fornecidas são protegidas e armazenadas com segurança.',
+    );
+  }
+
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isDesktop = screenWidth > 1100;
-    final ThemeNotifier notifier = MyApp.of(context);
-    final bool isDark = notifier.isDark;
-
-    // Botão de tema
-    final themeButton = Positioned(
-      top: 16,
-      right: 16,
-      child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 250),
-        transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: child),
-        child: IconButton(
-          key: ValueKey(isDark),
-          icon: Icon(
-            isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
-            color: AppColors.text2Of(context),
-            size: 22,
-          ),
-          tooltip: isDark ? 'Modo claro' : 'Modo escuro',
-          onPressed: notifier.toggle,
-        ),
-      ),
-    );
 
     if (!isDesktop) {
+      // No Mobile, renderiza apenas o esquerdo com o scroll interno ativo
       return Scaffold(
-        backgroundColor: AppColors.bgOf(context),
-        body: Stack(children: [
-          _buildLeftPanel(context),
-          themeButton,
-        ]),
+        backgroundColor: AppColors.bg, 
+        body: _buildLeftPanel(disableScroll: false),
       );
     }
 
+    // No Desktop, limpamos os scrolls internos e usamos apenas o Global
     return Scaffold(
-      backgroundColor: AppColors.bgOf(context),
-      body: Stack(
+      backgroundColor: AppColors.bg,
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    flex: 4, 
+                    child: _buildLeftPanel(disableScroll: true), // <--- Desativado
+                  ),
+                  Expanded(
+                    flex: 6, 
+                    child: _buildRightPanel(disableScroll: true), // <--- Desativado
+                  ),
+                ],
+              ),
+            ),
+            _buildFooter(),
+          ],
+        ),
+      ),
+    );
+  }
+
+ Widget _buildFooter() {
+    // Estilos de texto puramente informativos
+    const headerStyle = TextStyle(
+      color: AppColors.text, // Branco ou cor principal do tema
+      fontSize: 18,
+      fontWeight: FontWeight.bold,
+    );
+
+    const infoStyle = TextStyle(
+      color: AppColors.text2, // Cinza claro informativo
+      fontSize: 14,
+      fontWeight: FontWeight.w500,
+    );
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 60),
+      decoration: BoxDecoration(
+        color: const Color(0xFF13151D), 
+        border: Border(
+          top: BorderSide(color: AppColors.accent, width: 2), 
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Expanded(flex: 4, child: _buildLeftPanel(context)),
-              Expanded(flex: 6, child: _buildRightPanel(context)),
-            ],
+         
+          Expanded(
+            flex: 2,
+            child: Align(
+              alignment: Alignment.topLeft,
+              child: SizedBox(
+                width: 90,
+                height: 90,
+                child: Image.asset(
+                  'assets/Logo QueryGen (1).png',
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
           ),
-          themeButton,
+
+          Expanded(
+            flex: 3,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Text('Navegação', style: headerStyle),
+                SizedBox(height: 24),
+                Text('Home page', style: infoStyle),
+                SizedBox(height: 16),
+                Text('Geração de scripts', style: infoStyle),
+                SizedBox(height: 16),
+                Text('Histórico', style: infoStyle),
+                SizedBox(height: 16),
+                Text('Perfil', style: infoStyle),
+              ],
+            ),
+          ),
+
+          
+          Expanded(
+            flex: 3,
+            child: // Exemplo dentro do seu _buildFooter:
+Column(
+  crossAxisAlignment: CrossAxisAlignment.start,
+  children: [
+    const Text('Serviços', style: headerStyle),
+    const SizedBox(height: 24),
+    GestureDetector(
+      onTap: showTerms, // CHAMA O MODAL DE TERMOS
+      child: const Text('Termos e condições', style: infoStyle),
+    ),
+    const SizedBox(height: 16),
+    GestureDetector(
+      onTap: showPrivacy, // CHAMA O MODAL DE PRIVACIDADE
+      child: const Text('Política de privacidade', style: infoStyle),
+    ),
+  ],
+),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildLeftPanel(BuildContext context) {
-    return Center(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 360),
-          child: _buildForm(context),
-        ),
+  Widget _buildLeftPanel({bool disableScroll = false}) {
+    Widget content = Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 360),
+        child: _buildForm(),
       ),
+    );
+
+    // Se o scroll estiver desativado, usamos apenas um Padding comum
+    if (disableScroll) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
+        child: content,
+      );
+    }
+
+    // Se for mobile, mantém o comportamento original de scroll individual
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
+      child: content,
     );
   }
 
-  Widget _buildRightPanel(BuildContext context) {
+
+  Widget _buildRightPanel({bool disableScroll = false}) {
+    Widget content = Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 800),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const StatPillsRow(),
+            const SizedBox(height: 24),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Expanded(
+                  flex: 5,
+                  child: SizedBox(height: 280, child: LineChartWidget()),
+                ),
+                SizedBox(width: 24),
+                Expanded(
+                  flex: 4,
+                  child: SizedBox(height: 280, child: DonutChartWidget()),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Expanded(
+                  flex: 4,
+                  child: SizedBox(height: 280, child: BarChartWidget()),
+                ),
+                SizedBox(width: 24),
+                Expanded(
+                  flex: 5,
+                  child: SizedBox(height: 280, child: ActivityBarsWidget()),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+
     return Container(
       decoration: BoxDecoration(
         color: AppColors.bgOf(context),
@@ -186,43 +431,12 @@ class _LoginScreenState extends State<LoginScreen> {
           left: BorderSide(color: AppColors.borderOf(context), width: 1),
         ),
       ),
-      child: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(48),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 800),
-            child: const Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                StatPillsRow(),
-                SizedBox(height: 24),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(flex: 5, child: SizedBox(height: 280, child: LineChartWidget())),
-                    SizedBox(width: 24),
-                    Expanded(flex: 4, child: SizedBox(height: 280, child: DonutChartWidget())),
-                  ],
-                ),
-                SizedBox(height: 24),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(flex: 4, child: SizedBox(height: 280, child: BarChartWidget())),
-                    SizedBox(width: 24),
-                    Expanded(flex: 5, child: SizedBox(height: 280, child: ActivityBarsWidget())),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+      child: disableScroll
+          ? Padding(padding: const EdgeInsets.all(48), child: content)
+          : SingleChildScrollView(padding: const EdgeInsets.all(48), child: content),
     );
   }
-
-  Widget _buildForm(BuildContext context) {
+  Widget _buildForm() {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,

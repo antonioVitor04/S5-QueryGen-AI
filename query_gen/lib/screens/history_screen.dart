@@ -300,9 +300,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
           ),
 
           // Botões
+          // Botões
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 8, 14, 14),
-            child: Row(
+            child: Wrap( // <-- 1. Trocamos Row por Wrap para evitar estouro de tela (overflow)
+              spacing: 8,
+              runSpacing: 8,
               children: [
                 ElevatedButton.icon(
                   onPressed: isLoadingThis ? null : () => _verDados(item),
@@ -317,9 +320,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 14, vertical: 8),
+                    minimumSize: const Size(0, 36), // <-- 2. A CORREÇÃO: Anula a largura infinita do tema
                   ),
                 ),
-                const SizedBox(width: 8),
                 OutlinedButton.icon(
                   onPressed: () {
                     Clipboard.setData(ClipboardData(
@@ -332,6 +335,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 14, vertical: 8),
+                    minimumSize: const Size(0, 36), // <-- 3. A CORREÇÃO AQUI TAMBÉM
                   ),
                 ),
               ],

@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import '../../theme/app_colors.dart';
 
 class DonutChartWidget extends StatefulWidget {
   final String label;
@@ -10,9 +11,15 @@ class DonutChartWidget extends StatefulWidget {
     super.key,
     this.label = 'Tipos de Consulta',
     this.segments = const [
+<<<<<<< HEAD
       DonutSegment(label: 'SQL',     value: 0.42, color: Color(0xFF6366f1)),
       DonutSegment(label: 'NoSQL',   value: 0.28, color: Color(0xFF34d399)),
       DonutSegment(label: 'GraphQL', value: 0.18, color: Color(0xFFf59e0b)),
+=======
+      DonutSegment(label: 'Lorem', value: 0.42, color: Color(0xFF6366f1)),
+      DonutSegment(label: 'Lorem', value: 0.28, color: Color(0xFF34d399)),
+      DonutSegment(label: 'Lorem', value: 0.18, color: Color(0xFFf59e0b)),
+>>>>>>> fa8d5fd552d9671f017231d83f3d7aa75a54123b
     ],
     this.delay = Duration.zero,
   });
@@ -57,6 +64,7 @@ class _DonutChartWidgetState extends State<DonutChartWidget>
 
   @override
   Widget build(BuildContext context) {
+<<<<<<< HEAD
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, _) {
@@ -183,6 +191,69 @@ class _DonutChartWidgetState extends State<DonutChartWidget>
                   ),
                 ],
               ),
+=======
+    final bgColor     = AppColors.panelOf(context);
+    final borderColor = AppColors.borderOf(context);
+    final labelColor  = AppColors.text2Of(context);
+    final valueColor  = AppColors.textOf(context);
+    final legendColor = AppColors.text2Of(context);
+    final pctColor    = AppColors.textOf(context);
+    final trackColor  = AppColors.borderOf(context);
+    final centerLabelColor = AppColors.text3Of(context);
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: bgColor,
+        border: Border.all(color: borderColor),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: TextStyle(color: labelColor, fontSize: 12)),
+          Text('Lorem', style: TextStyle(color: valueColor, fontSize: 16, fontWeight: FontWeight.w600)),
+          const SizedBox(height: 16),
+          Expanded(
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 5,
+                  child: CustomPaint(
+                    painter: _DonutPainter(
+                      segments: segments,
+                      trackColor: trackColor,
+                      centerLabelColor: centerLabelColor,
+                      centerValueColor: valueColor,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  flex: 4,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: List.generate(segments.length, (i) {
+                      final seg = segments[i];
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 10),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                        child: Row(children: [
+                          Container(width: 8, height: 8,
+                              decoration: BoxDecoration(color: seg.color, shape: BoxShape.circle)),
+                          const SizedBox(width: 7),
+                          Text(seg.label, style: TextStyle(color: legendColor, fontSize: 12)),
+                          const Spacer(),
+                          Text('${(seg.value * 100).toInt()}%',
+                              style: TextStyle(color: pctColor, fontSize: 12, fontWeight: FontWeight.w600)),
+                        ]),
+                      );
+                    }),
+                  ),
+                ),
+              ],
+>>>>>>> fa8d5fd552d9671f017231d83f3d7aa75a54123b
             ),
           ),
         );
@@ -201,9 +272,22 @@ class DonutSegment {
 
 class _DonutPainter extends CustomPainter {
   final List<DonutSegment> segments;
+<<<<<<< HEAD
   final double progress;
 
   _DonutPainter({required this.segments, required this.progress});
+=======
+  final Color trackColor;
+  final Color centerLabelColor;
+  final Color centerValueColor;
+
+  _DonutPainter({
+    required this.segments,
+    required this.trackColor,
+    required this.centerLabelColor,
+    required this.centerValueColor,
+  });
+>>>>>>> fa8d5fd552d9671f017231d83f3d7aa75a54123b
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -212,6 +296,7 @@ class _DonutPainter extends CustomPainter {
     final r = min(cx, cy) - 8;
     const sw = 14.0;
 
+<<<<<<< HEAD
     // Background ring
     canvas.drawCircle(
       Offset(cx, cy),
@@ -221,11 +306,16 @@ class _DonutPainter extends CustomPainter {
         ..strokeWidth = sw
         ..color = const Color(0xFF1e2236),
     );
+=======
+    canvas.drawCircle(Offset(cx, cy), r,
+        Paint()..style = PaintingStyle.stroke..strokeWidth = sw..color = trackColor);
+>>>>>>> fa8d5fd552d9671f017231d83f3d7aa75a54123b
 
     if (progress <= 0) return;
 
     double startAngle = -pi / 2;
     for (final seg in segments) {
+<<<<<<< HEAD
       final sweep = seg.value * 2 * pi * progress;
       if (sweep <= 0) continue;
 
@@ -253,11 +343,18 @@ class _DonutPainter extends CustomPainter {
           ..strokeWidth = sw
           ..strokeCap = StrokeCap.round
           ..color = seg.color,
+=======
+      final sweep = seg.value * 2 * pi;
+      canvas.drawArc(
+        Rect.fromCircle(center: Offset(cx, cy), radius: r),
+        startAngle, sweep, false,
+        Paint()..style = PaintingStyle.stroke..strokeWidth = sw..strokeCap = StrokeCap.round..color = seg.color,
+>>>>>>> fa8d5fd552d9671f017231d83f3d7aa75a54123b
       );
-
       startAngle += sweep;
     }
 
+<<<<<<< HEAD
     // Center: animated total
     final totalPct = segments.fold(0.0, (s, e) => s + e.value);
     final displayPct = (totalPct * 100 * progress).round();
@@ -267,10 +364,15 @@ class _DonutPainter extends CustomPainter {
         text: 'Total',
         style: TextStyle(color: Color(0xFF6b7280), fontSize: 10),
       ),
+=======
+    final tp = TextPainter(
+      text: TextSpan(text: 'Total', style: TextStyle(color: centerLabelColor, fontSize: 11)),
+>>>>>>> fa8d5fd552d9671f017231d83f3d7aa75a54123b
       textDirection: TextDirection.ltr,
     )..layout();
     tpLabel.paint(canvas, Offset(cx - tpLabel.width / 2, cy - 15));
 
+<<<<<<< HEAD
     final tpPct = TextPainter(
       text: TextSpan(
         text: '$displayPct%',
@@ -281,6 +383,10 @@ class _DonutPainter extends CustomPainter {
           fontWeight: FontWeight.w800,
         ),
       ),
+=======
+    final tp2 = TextPainter(
+      text: TextSpan(text: '88%', style: TextStyle(color: centerValueColor, fontSize: 17, fontWeight: FontWeight.w700)),
+>>>>>>> fa8d5fd552d9671f017231d83f3d7aa75a54123b
       textDirection: TextDirection.ltr,
     )..layout();
     tpPct.paint(canvas, Offset(cx - tpPct.width / 2, cy - 1));
@@ -288,5 +394,10 @@ class _DonutPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _DonutPainter old) =>
+<<<<<<< HEAD
       old.progress != progress;
 }
+=======
+      old.trackColor != trackColor || old.centerValueColor != centerValueColor;
+}
+>>>>>>> fa8d5fd552d9671f017231d83f3d7aa75a54123b

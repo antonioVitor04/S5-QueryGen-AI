@@ -149,17 +149,18 @@ class _ProfileModalState extends State<_ProfileModal> {
   @override
   Widget build(BuildContext context) {
     final screenWidth  = MediaQuery.of(context).size.width;
-    //final screenHeight = MediaQuery.of(context).size.height;
-    final isWide = screenWidth > 700;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isWide       = screenWidth > 700;
+    final maxH         = screenHeight * 0.88;
 
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: EdgeInsets.symmetric(
         horizontal: isWide ? 80 : 16,
-        vertical: 16,                  // menos margem vertical → modal maior
+        vertical: screenHeight * 0.06,
       ),
       child: Container(
-        constraints: const BoxConstraints(maxWidth: 560),
+        constraints: BoxConstraints(maxWidth: 560, maxHeight: maxH),
         decoration: BoxDecoration(
           color: AppColors.bgOf(context),
           borderRadius: BorderRadius.circular(16),
@@ -168,80 +169,81 @@ class _ProfileModalState extends State<_ProfileModal> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Header
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
-              decoration: BoxDecoration(
-                border: Border(bottom: BorderSide(color: AppColors.borderOf(context))),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Meu Perfil',
-                      style: TextStyle(
-                          color: AppColors.textOf(context),
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700),
-                    ),
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.close, color: AppColors.text3Of(context), size: 20),
-                    onPressed: () => Navigator.of(context).pop(),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                  ),
-                ],
-              ),
-            ),
-
-            // Conteúdo — sem scroll, tudo visível
+            _buildModalHeader(context),
             if (_loadingPerfil)
               const Padding(
-                padding: EdgeInsets.all(48),
+                padding: EdgeInsets.symmetric(vertical: 48),
                 child: Center(child: CircularProgressIndicator(color: AppColors.accent)),
               )
             else
-              Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildAvatar(context),
-                    const SizedBox(height: 20),
-                    _buildForm(context),
-                  ],
-                ),
-              ),
-
-            // Footer
-            if (!_loadingPerfil)
-              Container(
-                padding: const EdgeInsets.fromLTRB(24, 12, 24, 20),
-                decoration: BoxDecoration(
-                  border: Border(top: BorderSide(color: AppColors.borderOf(context))),
-                ),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 46,
-                  child: ElevatedButton.icon(
-                    onPressed: _loading ? null : _salvarPerfil,
-                    icon: _loading
-                        ? const SizedBox(
-                            width: 16, height: 16,
-                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                        : const Icon(Icons.save_outlined, size: 18),
-                    label: Text(_loading ? 'Salvando...' : 'Salvar Alterações'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.accent,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      elevation: 0,
-                    ),
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildAvatar(context),
+                      const SizedBox(height: 24),
+                      _buildForm(context),
+                    ],
                   ),
                 ),
               ),
+            if (!_loadingPerfil) _buildSaveFooter(context),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildModalHeader(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: AppColors.borderOf(context))),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              'Meu Perfil',
+              style: TextStyle(
+                  color: AppColors.textOf(context),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700),
+            ),
+          ),
+          IconButton(
+            icon: Icon(Icons.close, color: AppColors.text3Of(context), size: 20),
+            onPressed: () => Navigator.of(context).pop(),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSaveFooter(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(24, 12, 24, 20),
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: AppColors.borderOf(context))),
+      ),
+      child: ElevatedButton.icon(
+        onPressed: _loading ? null : _salvarPerfil,
+        icon: _loading
+            ? const SizedBox(
+                width: 16, height: 16,
+                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+            : const Icon(Icons.save_outlined, size: 18),
+        label: Text(_loading ? 'Salvando...' : 'Salvar Alterações'),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.accent,
+          foregroundColor: Colors.white,
+          minimumSize: const Size(double.infinity, 46),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          elevation: 0,
         ),
       ),
     );
@@ -253,7 +255,7 @@ class _ProfileModalState extends State<_ProfileModal> {
         GestureDetector(
           onTap: _alterarFoto,
           child: Container(
-            width: 90, height: 90,
+            width: 88, height: 88,
             decoration: BoxDecoration(
               color: AppColors.panelOf(context),
               shape: BoxShape.circle,
@@ -261,8 +263,8 @@ class _ProfileModalState extends State<_ProfileModal> {
             ),
             child: ClipOval(
               child: _fotoBytes != null
-                  ? Image.memory(_fotoBytes!, fit: BoxFit.cover, width: 90, height: 90)
-                  : Center(child: Icon(Icons.person, size: 40, color: AppColors.text3Of(context))),
+                  ? Image.memory(_fotoBytes!, fit: BoxFit.cover, width: 88, height: 88)
+                  : Center(child: Icon(Icons.person, size: 38, color: AppColors.text3Of(context))),
             ),
           ),
         ),
@@ -296,8 +298,7 @@ class _ProfileModalState extends State<_ProfileModal> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('DADOS PESSOAIS',
-              style: TextStyle(color: AppColors.text2Of(context), fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 0.5)),
+          _buildSectionLabel(context, 'DADOS PESSOAIS'),
           const SizedBox(height: 16),
           _buildField(context, 'Nome completo', 'Seu nome', _nomeController),
           const SizedBox(height: 16),
@@ -305,36 +306,56 @@ class _ProfileModalState extends State<_ProfileModal> {
           const SizedBox(height: 24),
           Divider(color: AppColors.borderOf(context), height: 1),
           const SizedBox(height: 20),
-          Text('ALTERAR SENHA',
-              style: TextStyle(color: AppColors.text2Of(context), fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 0.5)),
-          const SizedBox(height: 6),
+          _buildSectionLabel(context, 'ALTERAR SENHA'),
+          const SizedBox(height: 4),
           Text('Deixe em branco caso não queira alterar',
               style: TextStyle(color: AppColors.text3Of(context), fontSize: 12)),
           const SizedBox(height: 16),
-          _buildField(context, 'Nova senha', 'Mínimo 8 caracteres', _senhaController,
-              obscure: _obscureSenha,
-              toggleObscure: () => setState(() => _obscureSenha = !_obscureSenha)),
+          _buildField(
+            context, 'Nova senha', 'Mínimo 8 caracteres', _senhaController,
+            obscure: _obscureSenha,
+            toggleObscure: () => setState(() => _obscureSenha = !_obscureSenha),
+          ),
           const SizedBox(height: 16),
-          _buildField(context, 'Confirmar nova senha', 'Repita a senha', _confirmController,
-              obscure: _obscureConfirm,
-              toggleObscure: () => setState(() => _obscureConfirm = !_obscureConfirm)),
+          _buildField(
+            context, 'Confirmar nova senha', 'Repita a senha', _confirmController,
+            obscure: _obscureConfirm,
+            toggleObscure: () => setState(() => _obscureConfirm = !_obscureConfirm),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildReadOnlyField(BuildContext context, String label, TextEditingController controller) {
+  Widget _buildSectionLabel(BuildContext context, String label) {
+    return Text(
+      label,
+      style: TextStyle(
+          color: AppColors.text2Of(context),
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.8),
+    );
+  }
+
+  Widget _buildReadOnlyField(BuildContext context, String label,
+      TextEditingController controller) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: TextStyle(color: AppColors.text2Of(context), fontSize: 12, fontWeight: FontWeight.w500)),
+        Text(label,
+            style: TextStyle(
+                color: AppColors.text2Of(context),
+                fontSize: 12,
+                fontWeight: FontWeight.w500)),
         const SizedBox(height: 6),
         TextField(
           controller: controller,
           readOnly: true,
           style: TextStyle(color: AppColors.text3Of(context), fontSize: 14),
           decoration: InputDecoration(
-            suffixIcon: Icon(Icons.lock_outline, color: AppColors.text3Of(context), size: 16),
+            suffixIcon: Icon(Icons.lock_outline,
+                color: AppColors.text3Of(context), size: 16),
           ),
         ),
       ],
@@ -352,7 +373,11 @@ class _ProfileModalState extends State<_ProfileModal> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: TextStyle(color: AppColors.text2Of(context), fontSize: 12, fontWeight: FontWeight.w500)),
+        Text(label,
+            style: TextStyle(
+                color: AppColors.text2Of(context),
+                fontSize: 12,
+                fontWeight: FontWeight.w500)),
         const SizedBox(height: 6),
         TextField(
           controller: controller,
@@ -363,8 +388,10 @@ class _ProfileModalState extends State<_ProfileModal> {
             hintStyle: TextStyle(color: AppColors.text3Of(context)),
             suffixIcon: toggleObscure != null
                 ? IconButton(
-                    icon: Icon(obscure ? Icons.visibility_off : Icons.visibility,
-                        color: AppColors.text3Of(context), size: 18),
+                    icon: Icon(
+                        obscure ? Icons.visibility_off : Icons.visibility,
+                        color: AppColors.text3Of(context),
+                        size: 18),
                     onPressed: toggleObscure,
                   )
                 : null,

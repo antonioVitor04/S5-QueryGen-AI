@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../theme/app_colors.dart';
 
 class LineChartWidget extends StatefulWidget {
   final String label;
@@ -64,6 +65,8 @@ class _LineChartWidgetState extends State<LineChartWidget>
 
   @override
   Widget build(BuildContext context) {
+    final ghostColor = AppColors.borderOf(context);
+
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, _) {
@@ -76,8 +79,8 @@ class _LineChartWidgetState extends State<LineChartWidget>
             child: Container(
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: const Color(0xFF0f1119),
-                border: Border.all(color: const Color(0xFF1e2236)),
+                color: AppColors.panelOf(context),
+                border: Border.all(color: AppColors.borderOf(context)),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Column(
@@ -91,15 +94,16 @@ class _LineChartWidgetState extends State<LineChartWidget>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(widget.label,
-                                style: const TextStyle(
-                                    color: Color(0xFF6b7280), fontSize: 12)),
+                                style: TextStyle(
+                                    color: AppColors.text2Of(context),
+                                    fontSize: 12)),
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.baseline,
                               textBaseline: TextBaseline.alphabetic,
                               children: [
                                 Text(widget.value,
-                                    style: const TextStyle(
-                                        color: Color(0xFFf0f2fc),
+                                    style: TextStyle(
+                                        color: AppColors.textOf(context),
                                         fontSize: 22,
                                         fontWeight: FontWeight.w700)),
                                 const SizedBox(width: 8),
@@ -115,8 +119,7 @@ class _LineChartWidgetState extends State<LineChartWidget>
                           children: [
                             _LegendDot(color: widget.lineColor, label: '2025'),
                             const SizedBox(height: 4),
-                            const _LegendDot(
-                                color: Color(0xFF2a3050), label: '2024'),
+                            _LegendDot(color: ghostColor, label: '2024'),
                           ]),
                     ],
                   ),
@@ -127,6 +130,7 @@ class _LineChartWidgetState extends State<LineChartWidget>
                         data2025: widget.data2025,
                         data2024: widget.data2024,
                         lineColor: widget.lineColor,
+                        ghostColor: ghostColor,
                         lineProgress: _lineAnim.value,
                       ),
                       child: const SizedBox.expand(),
@@ -137,8 +141,9 @@ class _LineChartWidgetState extends State<LineChartWidget>
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: widget.xLabels
                         .map((l) => Text(l,
-                            style: const TextStyle(
-                                color: Color(0xFF3d4460), fontSize: 9.5)))
+                            style: TextStyle(
+                                color: AppColors.text3Of(context),
+                                fontSize: 9.5)))
                         .toList(),
                   ),
                 ],
@@ -155,12 +160,14 @@ class _LinePainter extends CustomPainter {
   final List<double> data2025;
   final List<double> data2024;
   final Color lineColor;
+  final Color ghostColor;
   final double lineProgress;
 
   _LinePainter({
     required this.data2025,
     required this.data2024,
     required this.lineColor,
+    required this.ghostColor,
     required this.lineProgress,
   });
 
@@ -211,7 +218,7 @@ class _LinePainter extends CustomPainter {
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.5
-        ..color = const Color(0xFF2a3050),
+        ..color = ghostColor,
     );
 
     final linePath = _smoothPath(pts25);
@@ -269,7 +276,7 @@ class _LinePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _LinePainter old) =>
-      old.lineProgress != lineProgress;
+      old.lineProgress != lineProgress || old.ghostColor != ghostColor;
 }
 
 class _LegendDot extends StatelessWidget {
@@ -286,7 +293,8 @@ class _LegendDot extends StatelessWidget {
       ),
       const SizedBox(width: 4),
       Text(label,
-          style: const TextStyle(color: Color(0xFF6b7280), fontSize: 11)),
+          style: TextStyle(
+              color: AppColors.text2Of(context), fontSize: 11)),
     ]);
   }
 }

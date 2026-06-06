@@ -122,37 +122,42 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildWebContent(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          width: 420, height: double.infinity,
-          decoration: BoxDecoration(
-            color: AppColors.bgOf(context),
-            border: Border(right: BorderSide(color: AppColors.borderOf(context))),
-          ),
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(32),
-            child: _buildInputSection(context),
-          ),
-        ),
-        Expanded(
-          child: _sql == null
-              ? _buildEmptyState(context)
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.all(32),
-                  child: Column(children: [
-                    _buildResultCard(context),
-                    if (_dados.isNotEmpty) ...[
-                      const SizedBox(height: 20),
-                      _buildChartCard(context),
-                      const SizedBox(height: 20),
-                      _buildTableCard(context),
-                    ],
-                  ]),
-                ),
-        ),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final sidebarW = (constraints.maxWidth * 0.32).clamp(320.0, 440.0);
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: sidebarW, height: double.infinity,
+              decoration: BoxDecoration(
+                color: AppColors.bgOf(context),
+                border: Border(right: BorderSide(color: AppColors.borderOf(context))),
+              ),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(28),
+                child: _buildInputSection(context),
+              ),
+            ),
+            Expanded(
+              child: _sql == null
+                  ? _buildEmptyState(context)
+                  : SingleChildScrollView(
+                      padding: const EdgeInsets.all(32),
+                      child: Column(children: [
+                        _buildResultCard(context),
+                        if (_dados.isNotEmpty) ...[
+                          const SizedBox(height: 20),
+                          _buildChartCard(context),
+                          const SizedBox(height: 20),
+                          _buildTableCard(context),
+                        ],
+                      ]),
+                    ),
+            ),
+          ],
+        );
+      },
     );
   }
 

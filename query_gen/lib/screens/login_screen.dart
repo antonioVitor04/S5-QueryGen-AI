@@ -117,7 +117,7 @@ class _LoginScreenState extends State<LoginScreen> {
     showDialog(
       context: context,
       builder: (context) => Dialog(
-        backgroundColor: const Color.fromARGB(255, 40, 40, 40), // Fundo escuro das imagens
+        backgroundColor: AppColors.panelOf(context),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 500, maxHeight: 700),
@@ -139,7 +139,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     // TÍTULO
                     Text(
                       title,
-                      style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+                      style: TextStyle(color: AppColors.textOf(context), fontSize: 22, fontWeight: FontWeight.bold),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 12),
@@ -147,7 +147,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     // SUBTÍTULO
                     Text(
                       subtitle,
-                      style: const TextStyle(color: AppColors.text2, fontSize: 13),
+                      style: TextStyle(color: AppColors.text2Of(context), fontSize: 13),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 24),
@@ -170,7 +170,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 const SizedBox(height: 8),
                                 Text(
                                   sec['content']!,
-                                  style: const TextStyle(color: AppColors.text, fontSize: 14, height: 1.5),
+                                  style: TextStyle(color: AppColors.textOf(context), fontSize: 14, height: 1.5),
                                 ),
                               ],
                             ),
@@ -237,66 +237,99 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!isDesktop) {
       // No Mobile, renderiza apenas o esquerdo com o scroll interno ativo
       return Scaffold(
-        backgroundColor: AppColors.bg, 
-        body: _buildLeftPanel(disableScroll: false),
+        backgroundColor: AppColors.bgOf(context),
+        body: Stack(
+          children: [
+            _buildLeftPanel(disableScroll: false),
+            _buildThemeButton(context),
+          ],
+        ),
       );
     }
 
     // No Desktop, limpamos os scrolls internos e usamos apenas o Global
     return Scaffold(
-      backgroundColor: AppColors.bg,
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            IntrinsicHeight(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Expanded(
-                    flex: 4, 
-                    child: _buildLeftPanel(disableScroll: true), // <--- Desativado
+      backgroundColor: AppColors.bgOf(context),
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            child: Column(
+              children: [
+                IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(
+                        flex: 4,
+                        child: _buildLeftPanel(disableScroll: true),
+                      ),
+                      Expanded(
+                        flex: 6,
+                        child: _buildRightPanel(disableScroll: true),
+                      ),
+                    ],
                   ),
-                  Expanded(
-                    flex: 6, 
-                    child: _buildRightPanel(disableScroll: true), // <--- Desativado
-                  ),
-                ],
-              ),
+                ),
+                _buildFooter(),
+              ],
             ),
-            _buildFooter(),
-          ],
+          ),
+          _buildThemeButton(context),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildThemeButton(BuildContext context) {
+    final notifier = MyApp.of(context);
+    final isDark = notifier.isDark;
+    return Positioned(
+      top: 16,
+      right: 16,
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 250),
+        transitionBuilder: (child, anim) =>
+            ScaleTransition(scale: anim, child: child),
+        child: IconButton(
+          key: ValueKey(isDark),
+          icon: Icon(
+            isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+            color: AppColors.text2Of(context),
+            size: 22,
+          ),
+          tooltip: isDark ? 'Modo claro' : 'Modo escuro',
+          onPressed: notifier.toggle,
         ),
       ),
     );
   }
 
  Widget _buildFooter() {
-    // Estilos de texto puramente informativos
-    const headerStyle = TextStyle(
-      color: AppColors.text, // Branco ou cor principal do tema
+    final headerStyle = TextStyle(
+      color: AppColors.textOf(context),
       fontSize: 18,
       fontWeight: FontWeight.bold,
     );
 
-    const infoStyle = TextStyle(
-      color: AppColors.text2, // Cinza claro informativo
+    final infoStyle = TextStyle(
+      color: AppColors.text2Of(context),
       fontSize: 14,
       fontWeight: FontWeight.w500,
     );
 
+    final hPad = (MediaQuery.of(context).size.width * 0.06).clamp(24.0, 80.0);
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 60),
+      padding: EdgeInsets.symmetric(horizontal: hPad, vertical: 60),
       decoration: BoxDecoration(
-        color: const Color(0xFF13151D), 
+        color: AppColors.panelOf(context),
         border: Border(
-          top: BorderSide(color: AppColors.accent, width: 2), 
+          top: BorderSide(color: AppColors.accent, width: 2),
         ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-         
           Expanded(
             flex: 2,
             child: Align(
@@ -316,40 +349,38 @@ class _LoginScreenState extends State<LoginScreen> {
             flex: 3,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 Text('Navegação', style: headerStyle),
-                SizedBox(height: 24),
+                const SizedBox(height: 24),
                 Text('Home page', style: infoStyle),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Text('Geração de scripts', style: infoStyle),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Text('Histórico', style: infoStyle),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Text('Perfil', style: infoStyle),
               ],
             ),
           ),
 
-          
           Expanded(
             flex: 3,
-            child: // Exemplo dentro do seu _buildFooter:
-Column(
-  crossAxisAlignment: CrossAxisAlignment.start,
-  children: [
-    const Text('Serviços', style: headerStyle),
-    const SizedBox(height: 24),
-    GestureDetector(
-      onTap: showTerms, // CHAMA O MODAL DE TERMOS
-      child: const Text('Termos e condições', style: infoStyle),
-    ),
-    const SizedBox(height: 16),
-    GestureDetector(
-      onTap: showPrivacy, // CHAMA O MODAL DE PRIVACIDADE
-      child: const Text('Política de privacidade', style: infoStyle),
-    ),
-  ],
-),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Serviços', style: headerStyle),
+                const SizedBox(height: 24),
+                GestureDetector(
+                  onTap: showTerms,
+                  child: Text('Termos e condições', style: infoStyle),
+                ),
+                const SizedBox(height: 16),
+                GestureDetector(
+                  onTap: showPrivacy,
+                  child: Text('Política de privacidade', style: infoStyle),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -597,7 +628,10 @@ Column(
     return Expanded(
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: () => setState(() { _isLogin = isLoginTab; _clearFields(); }),
+        onTap: () {
+          FocusScope.of(context).unfocus();
+          setState(() { _isLogin = isLoginTab; _clearFields(); });
+        },
         child: Center(
           child: AnimatedDefaultTextStyle(
             duration: const Duration(milliseconds: 250),

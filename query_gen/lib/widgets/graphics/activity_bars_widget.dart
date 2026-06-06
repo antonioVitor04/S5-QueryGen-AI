@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../theme/app_colors.dart';
 
 class ActivityBarsWidget extends StatefulWidget {
   final String title;
@@ -72,8 +73,8 @@ class _ActivityBarsWidgetState extends State<ActivityBarsWidget>
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFF0f1119),
-                border: Border.all(color: const Color(0xFF1e2236)),
+                color: AppColors.panelOf(context),
+                border: Border.all(color: AppColors.borderOf(context)),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Column(
@@ -97,8 +98,8 @@ class _ActivityBarsWidgetState extends State<ActivityBarsWidget>
                     const SizedBox(width: 6),
                     Text(
                       widget.title.toUpperCase(),
-                      style: const TextStyle(
-                        color: Color(0xFF6b7280),
+                      style: TextStyle(
+                        color: AppColors.text2Of(context),
                         fontSize: 10.5,
                         fontWeight: FontWeight.w600,
                         letterSpacing: 0.8,
@@ -120,17 +121,22 @@ class _ActivityBarsWidgetState extends State<ActivityBarsWidget>
                         child: Row(children: [
                           SizedBox(
                             width: 80,
-                            child: Text(item.label,
-                                style: const TextStyle(
-                                    color: Color(0xFF9ca3af), fontSize: 11.5)),
+                            child: Text(
+                              item.label,
+                              style: TextStyle(
+                                color: AppColors.text2Of(context),
+                                fontSize: 11.5,
+                              ),
+                            ),
                           ),
                           Expanded(
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(5),
                               child: Stack(children: [
                                 Container(
-                                    height: 26,
-                                    color: const Color(0xFF1e2236)),
+                                  height: 26,
+                                  color: AppColors.borderOf(context),
+                                ),
                                 FractionallySizedBox(
                                   widthFactor: animatedWidth.clamp(0.0, 1.0),
                                   child: Container(

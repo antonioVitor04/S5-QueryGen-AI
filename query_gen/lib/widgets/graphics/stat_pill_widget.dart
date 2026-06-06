@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../theme/app_colors.dart';
 
 class StatPillWidget extends StatefulWidget {
   final String icon;
@@ -74,8 +75,8 @@ class _StatPillWidgetState extends State<StatPillWidget>
               padding:
                   const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
-                color: const Color(0xFF0f1119),
-                border: Border.all(color: const Color(0xFF1e2236)),
+                color: AppColors.panelOf(context),
+                border: Border.all(color: AppColors.borderOf(context)),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(children: [
@@ -83,7 +84,9 @@ class _StatPillWidgetState extends State<StatPillWidget>
                   width: 32,
                   height: 32,
                   decoration: BoxDecoration(
-                    color: widget.iconBg,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? widget.iconBg
+                        : widget.iconColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(8),
                     boxShadow: [
                       BoxShadow(
@@ -106,16 +109,16 @@ class _StatPillWidgetState extends State<StatPillWidget>
                   children: [
                     Text(
                       '$displayValue${widget.suffix}',
-                      style: const TextStyle(
-                        color: Color(0xFFf0f2fc),
+                      style: TextStyle(
+                        color: AppColors.textOf(context),
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                     Text(
                       widget.label,
-                      style: const TextStyle(
-                          color: Color(0xFF6b7280), fontSize: 10.5),
+                      style: TextStyle(
+                          color: AppColors.text2Of(context), fontSize: 10.5),
                     ),
                   ],
                 ),

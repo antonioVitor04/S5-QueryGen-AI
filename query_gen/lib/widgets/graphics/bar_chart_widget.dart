@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../theme/app_colors.dart';
 
 class BarChartWidget extends StatefulWidget {
   final String label;
@@ -75,24 +76,24 @@ class _BarChartWidgetState extends State<BarChartWidget>
             child: Container(
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: const Color(0xFF0f1119),
-                border: Border.all(color: const Color(0xFF1e2236)),
+                color: AppColors.panelOf(context),
+                border: Border.all(color: AppColors.borderOf(context)),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(widget.label,
-                      style: const TextStyle(
-                          color: Color(0xFF6b7280), fontSize: 12)),
+                      style: TextStyle(
+                          color: AppColors.text2Of(context), fontSize: 12)),
                   const SizedBox(height: 4),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.baseline,
                     textBaseline: TextBaseline.alphabetic,
                     children: [
                       Text(widget.value,
-                          style: const TextStyle(
-                            color: Color(0xFFf0f2fc),
+                          style: TextStyle(
+                            color: AppColors.textOf(context),
                             fontSize: 24,
                             fontWeight: FontWeight.w700,
                           )),
@@ -133,8 +134,8 @@ class _BarChartWidgetState extends State<BarChartWidget>
                                                 .withValues(alpha: 0.7),
                                           ]
                                         : [
-                                            const Color(0xFF1e2236),
-                                            const Color(0xFF2a3050),
+                                            AppColors.borderOf(context),
+                                            AppColors.surfaceOf(context),
                                           ],
                                     begin: Alignment.bottomCenter,
                                     end: Alignment.topCenter,
@@ -165,8 +166,9 @@ class _BarChartWidgetState extends State<BarChartWidget>
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
                         .map((d) => Text(d,
-                            style: const TextStyle(
-                                color: Color(0xFF3d4460), fontSize: 9.5)))
+                            style: TextStyle(
+                                color: AppColors.text3Of(context),
+                                fontSize: 9.5)))
                         .toList(),
                   ),
                 ],

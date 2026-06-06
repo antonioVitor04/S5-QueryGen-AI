@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import '../../theme/app_colors.dart';
 
 class DonutChartWidget extends StatefulWidget {
   final String label;
@@ -57,6 +58,11 @@ class _DonutChartWidgetState extends State<DonutChartWidget>
 
   @override
   Widget build(BuildContext context) {
+    final trackColor    = AppColors.borderOf(context);
+    final labelColor    = AppColors.text2Of(context);
+    final pctStartColor = AppColors.text2Of(context);
+    final pctEndColor   = AppColors.textOf(context);
+
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, _) {
@@ -70,19 +76,19 @@ class _DonutChartWidgetState extends State<DonutChartWidget>
             child: Container(
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: const Color(0xFF0f1119),
-                border: Border.all(color: const Color(0xFF1e2236)),
+                color: AppColors.panelOf(context),
+                border: Border.all(color: AppColors.borderOf(context)),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(widget.label,
-                      style: const TextStyle(
-                          color: Color(0xFF6b7280), fontSize: 12)),
-                  const Text('Distribuição',
                       style: TextStyle(
-                          color: Color(0xFFf0f2fc),
+                          color: AppColors.text2Of(context), fontSize: 12)),
+                  Text('Distribuição',
+                      style: TextStyle(
+                          color: AppColors.textOf(context),
                           fontSize: 16,
                           fontWeight: FontWeight.w600)),
                   const SizedBox(height: 12),
@@ -95,6 +101,10 @@ class _DonutChartWidgetState extends State<DonutChartWidget>
                             painter: _DonutPainter(
                               segments: widget.segments,
                               progress: sweep,
+                              trackColor: trackColor,
+                              labelColor: labelColor,
+                              pctStartColor: pctStartColor,
+                              pctEndColor: pctEndColor,
                             ),
                             child: const SizedBox.expand(),
                           ),
@@ -149,8 +159,8 @@ class _DonutChartWidgetState extends State<DonutChartWidget>
                                           Expanded(
                                             child: Text(
                                               seg.label,
-                                              style: const TextStyle(
-                                                color: Color(0xFF9ca3af),
+                                              style: TextStyle(
+                                                color: AppColors.text2Of(context),
                                                 fontSize: 11,
                                               ),
                                               overflow:
@@ -199,8 +209,19 @@ class DonutSegment {
 class _DonutPainter extends CustomPainter {
   final List<DonutSegment> segments;
   final double progress;
+  final Color trackColor;
+  final Color labelColor;
+  final Color pctStartColor;
+  final Color pctEndColor;
 
-  _DonutPainter({required this.segments, required this.progress});
+  _DonutPainter({
+    required this.segments,
+    required this.progress,
+    required this.trackColor,
+    required this.labelColor,
+    required this.pctStartColor,
+    required this.pctEndColor,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -215,7 +236,7 @@ class _DonutPainter extends CustomPainter {
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = sw
-        ..color = const Color(0xFF1e2236),
+        ..color = trackColor,
     );
 
     if (progress <= 0) return;
@@ -258,9 +279,9 @@ class _DonutPainter extends CustomPainter {
     final displayPct = (totalPct * 100 * progress).round();
 
     final tpLabel = TextPainter(
-      text: const TextSpan(
+      text: TextSpan(
         text: 'Total',
-        style: TextStyle(color: Color(0xFF6b7280), fontSize: 10),
+        style: TextStyle(color: labelColor, fontSize: 10),
       ),
       textDirection: TextDirection.ltr,
     )..layout();
@@ -270,8 +291,7 @@ class _DonutPainter extends CustomPainter {
       text: TextSpan(
         text: '$displayPct%',
         style: TextStyle(
-          color: Color.lerp(
-                  const Color(0xFF9ca3af), const Color(0xFFf0f2fc), progress)!,
+          color: Color.lerp(pctStartColor, pctEndColor, progress)!,
           fontSize: 18,
           fontWeight: FontWeight.w800,
         ),
@@ -283,5 +303,7 @@ class _DonutPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _DonutPainter old) =>
-      old.progress != progress;
+      old.progress != progress ||
+      old.trackColor != trackColor ||
+      old.pctStartColor != pctStartColor;
 }

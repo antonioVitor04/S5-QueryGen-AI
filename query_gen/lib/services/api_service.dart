@@ -6,7 +6,7 @@ import 'auth_service.dart';
 class ApiService {
   // ── Troca o IP aqui quando mudar de rede ──
   static const _ipLocal = '10.2.0.135'; // <- coloca seu IP atual aqui
-  static const _porta   = '3000';
+  static const _porta   = '3005';
 
   static String get _base => kIsWeb
       ? 'http://localhost:$_porta'

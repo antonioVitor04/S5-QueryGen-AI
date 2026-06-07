@@ -3,6 +3,7 @@ import '../../theme/app_colors.dart';
 import '../../services/auth_service.dart';
 import '../../screens/home_screen.dart';
 import '../../screens/history_screen.dart';
+import '../../screens/comparison_screen.dart';
 import '../../screens/login_screen.dart';
 
 class NavBar extends StatelessWidget {
@@ -22,6 +23,11 @@ class NavBar extends StatelessWidget {
         context,
         MaterialPageRoute(builder: (_) => const HistoryScreen()),
       );
+    } else if (index == 2) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const ComparisonScreen()),
+      );
     } else if (index == 4) {
       await AuthService().logout();
       if (!context.mounted) return;
@@ -38,7 +44,7 @@ class NavBar extends StatelessWidget {
     final Color bgColor     = AppColors.panelOf(context);
     final Color borderColor = AppColors.borderOf(context);
 
-    return Container(
+    return SelectionArea(child: Container(
       width: 260,
       decoration: BoxDecoration(
         color: bgColor,
@@ -99,6 +105,7 @@ class NavBar extends StatelessWidget {
                 children: [
                   _buildMenuItem(context, 0, Icons.auto_awesome, 'Scripts'),
                   _buildMenuItem(context, 1, Icons.history, 'Histórico'),
+                  _buildMenuItem(context, 2, Icons.compare_arrows, 'Comparação'),
                 ],
               ),
             ),
@@ -116,7 +123,7 @@ class NavBar extends StatelessWidget {
           ),
         ],
       ),
-    );
+    ));
   }
 
   Widget _buildMenuItem(
@@ -139,7 +146,7 @@ class NavBar extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
             color: isSelected
-                ? AppColors.accent.withOpacity(0.15)
+                ? AppColors.accent.withValues(alpha: 0.15)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
           ),

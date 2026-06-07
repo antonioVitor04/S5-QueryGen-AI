@@ -152,7 +152,7 @@ class _ProfileModalState extends State<_ProfileModal> {
     //final screenHeight = MediaQuery.of(context).size.height;
     final isWide = screenWidth > 700;
 
-    return Dialog(
+    return SelectionArea(child: Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: EdgeInsets.symmetric(
         horizontal: isWide ? 80 : 16,
@@ -244,7 +244,7 @@ class _ProfileModalState extends State<_ProfileModal> {
           ],
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildAvatar(BuildContext context) {

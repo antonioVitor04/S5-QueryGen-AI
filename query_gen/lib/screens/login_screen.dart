@@ -167,12 +167,14 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _buildLeftPanel(BuildContext context) {
-    return Center(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 360),
-          child: _buildForm(context),
+    return SelectionArea(
+      child: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 360),
+            child: _buildForm(context),
+          ),
         ),
       ),
     );

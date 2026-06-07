@@ -100,7 +100,8 @@ class ChartScreen extends StatelessWidget {
                   ),
                   Divider(color: AppColors.borderOf(context), height: 1),
                   Expanded(
-                    child: SingleChildScrollView(
+                    child: SelectionArea(
+                      child: SingleChildScrollView(
                       padding: const EdgeInsets.all(20),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -184,6 +185,7 @@ class ChartScreen extends StatelessWidget {
                         ],
                       ),
                     ),
+                  ),
                   ),
                 ],
               ),

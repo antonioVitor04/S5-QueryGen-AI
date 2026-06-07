@@ -395,7 +395,6 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
 
-    // Se o scroll estiver desativado, usamos apenas um Padding comum
     if (disableScroll) {
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
@@ -403,13 +402,11 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     }
 
-    // Se for mobile, mantém o comportamento original de scroll individual
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
       child: content,
     );
   }
-
 
   Widget _buildRightPanel({bool disableScroll = false}) {
     Widget content = Center(

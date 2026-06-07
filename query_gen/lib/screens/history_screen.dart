@@ -90,16 +90,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   AppHeader(title: 'Histórico', showMenuButton: !isWide),
                   Divider(color: AppColors.borderOf(context), height: 1),
                   Expanded(
-                    child: _loading
-                        ? const Center(child: CircularProgressIndicator(color: AppColors.accent))
-                        : _items.isEmpty
-                            ? _buildEmptyState(context)
-                            : RefreshIndicator(
-                                onRefresh: _load, color: AppColors.accent,
-                                child: isWide
-                                    ? _buildWebGrid(context)
-                                    : _buildMobileList(context),
-                              ),
+                    child: SelectionArea(
+                      child: _loading
+                          ? const Center(child: CircularProgressIndicator(color: AppColors.accent))
+                          : _items.isEmpty
+                              ? _buildEmptyState(context)
+                              : RefreshIndicator(
+                                  onRefresh: _load, color: AppColors.accent,
+                                  child: isWide
+                                      ? _buildWebGrid(context)
+                                      : _buildMobileList(context),
+                                ),
+                    ),
                   ),
                 ],
               ),

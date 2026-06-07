@@ -153,7 +153,7 @@ class _ProfileModalState extends State<_ProfileModal> {
     final isWide       = screenWidth > 700;
     final maxH         = screenHeight * 0.88;
 
-    return Dialog(
+    return SelectionArea(child: Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: EdgeInsets.symmetric(
         horizontal: isWide ? 80 : 16,
@@ -193,7 +193,7 @@ class _ProfileModalState extends State<_ProfileModal> {
           ],
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildModalHeader(BuildContext context) {

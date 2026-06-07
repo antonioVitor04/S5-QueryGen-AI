@@ -108,9 +108,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   AppHeader(title: 'Scripts', showMenuButton: !isWide),
                   Divider(color: AppColors.borderOf(context), height: 1),
                   Expanded(
-                    child: isWide
-                        ? _buildWebContent(context)
-                        : _buildMobileContent(context),
+                    child: SelectionArea(
+                      child: isWide
+                          ? _buildWebContent(context)
+                          : _buildMobileContent(context),
+                    ),
                   ),
                 ],
               ),

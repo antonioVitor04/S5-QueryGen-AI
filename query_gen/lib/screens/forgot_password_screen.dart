@@ -3,6 +3,7 @@ import '../theme/app_colors.dart';
 import '../theme/theme_notifier.dart';
 import '../main.dart';
 import '../services/api_service.dart';
+import '../utils/routes.dart';
 import 'login_screen.dart';
 import '../widgets/graphics/activity_bars_widget.dart';
 import '../widgets/graphics/bar_chart_widget.dart';
@@ -104,7 +105,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         await api.redefinirSenha(_tokenId, nova);
         if (!mounted) return;
         _showSnack('Senha redefinida com sucesso!', AppColors.green);
-        Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const LoginScreen()), (_) => false);
+        Navigator.pushAndRemoveUntil(context, fadeRoute(const LoginScreen()), (_) => false);
       }
     } catch (e) {
       _showSnack(e.toString().replaceAll('Exception: ', ''), AppColors.red);

@@ -1,42 +1,28 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import '../../services/auth_service.dart';
-import '../../screens/home_screen.dart';
-import '../../screens/history_screen.dart';
-import '../../screens/comparison_screen.dart';
 import '../../screens/login_screen.dart';
+import '../../utils/routes.dart';
 
 class NavBar extends StatelessWidget {
   final int currentIndex;
-  const NavBar({super.key, required this.currentIndex});
+  final ValueChanged<int>? onChangePage;
+
+  const NavBar({super.key, required this.currentIndex, this.onChangePage});
 
   void _handleTap(BuildContext context, int index) async {
-    if (index == currentIndex) return;
-
-    if (index == 0) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-      );
-    } else if (index == 1) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HistoryScreen()),
-      );
-    } else if (index == 2) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const ComparisonScreen()),
-      );
-    } else if (index == 4) {
+    if (index == 4) {
       await AuthService().logout();
       if (!context.mounted) return;
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        fadeRoute(const LoginScreen()),
         (route) => false,
       );
+      return;
     }
+    if (index == currentIndex) return;
+    onChangePage?.call(index);
   }
 
   @override

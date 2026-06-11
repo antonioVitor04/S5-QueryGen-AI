@@ -259,7 +259,7 @@ class ChartWidget extends StatelessWidget {
               ),
               belowBarData: BarAreaData(
                 show: true,
-                color: AppColors.accent.withOpacity(0.1),
+                color: AppColors.accent.withValues(alpha: 0.1),
               ),
             ),
           ],

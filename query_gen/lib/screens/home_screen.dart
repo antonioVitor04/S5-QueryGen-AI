@@ -5,8 +5,8 @@ import '../utils/responsive.dart';
 import '../services/api_service.dart';
 import '../widgets/chart_widget.dart';
 import '../widgets/data_table_widget.dart';
+import '../utils/routes.dart';
 import '../widgets/app_header.dart';
-import '../widgets/navbar/navbar.dart';
 import 'chart_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -70,12 +70,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _abrirGrafico() {
     if (_dados.isEmpty) return;
-    Navigator.push(context, MaterialPageRoute(
-      builder: (_) => ChartScreen(
-        dados: _dados, tipoGrafico: _tipoGrafico,
-        eixoX: _eixoX, eixoY: _eixoY, descricao: _descricao ?? '',
-      ),
-    ));
+    Navigator.push(context, fadeRoute(ChartScreen(
+      dados: _dados, tipoGrafico: _tipoGrafico,
+      eixoX: _eixoX, eixoY: _eixoY, descricao: _descricao ?? '',
+    )));
   }
 
   void _showSnack(String msg, Color color) {
@@ -90,36 +88,19 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final isWide = Responsive.isWide(context);
-    return Scaffold(
-      backgroundColor: AppColors.bgOf(context),
-      drawer: isWide ? null : Drawer(
-        backgroundColor: Colors.transparent, elevation: 0,
-        child: const NavBar(currentIndex: 0),
-      ),
-      body: SafeArea(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (isWide) const NavBar(currentIndex: 0),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AppHeader(title: 'Scripts', showMenuButton: !isWide),
-                  Divider(color: AppColors.borderOf(context), height: 1),
-                  Expanded(
-                    child: SelectionArea(
-                      child: isWide
-                          ? _buildWebContent(context)
-                          : _buildMobileContent(context),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AppHeader(title: 'Scripts', showMenuButton: !isWide),
+        Divider(color: AppColors.borderOf(context), height: 1),
+        Expanded(
+          child: SelectionArea(
+            child: isWide
+                ? _buildWebContent(context)
+                : _buildMobileContent(context),
+          ),
         ),
-      ),
+      ],
     );
   }
 
@@ -288,7 +269,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     fontSize: 14, fontWeight: FontWeight.w600))),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(color: AppColors.green.withOpacity(0.15),
+              decoration: BoxDecoration(color: AppColors.green.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(5)),
               child: const Text('Sucesso', style: TextStyle(
                   color: AppColors.green, fontSize: 11, fontWeight: FontWeight.w600)),
@@ -300,7 +281,7 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
             child: Wrap(spacing: 6, children: _tabelas.map((t) => Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(color: AppColors.accent.withOpacity(0.15),
+              decoration: BoxDecoration(color: AppColors.accent.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(5)),
               child: Text(t, style: const TextStyle(
                   color: AppColors.accent2, fontSize: 11, fontWeight: FontWeight.w600)),
@@ -365,7 +346,7 @@ class _HomeScreenState extends State<HomeScreen> {
           const Spacer(),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-            decoration: BoxDecoration(color: AppColors.accent.withOpacity(0.15),
+            decoration: BoxDecoration(color: AppColors.accent.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(5)),
             child: Text('${_dados.length} registros', style: const TextStyle(
                 color: AppColors.accent2, fontSize: 11, fontWeight: FontWeight.w600)),

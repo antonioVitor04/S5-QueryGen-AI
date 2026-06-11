@@ -5,7 +5,6 @@ import '../utils/responsive.dart';
 import '../widgets/app_header.dart';
 import '../widgets/chart_widget.dart';
 import '../widgets/data_table_widget.dart';
-import '../widgets/navbar/navbar.dart';
 
 // Sentinel para o separador não-selecionável no dropdown B
 const _kDivider = '__divider__';
@@ -125,41 +124,21 @@ class _ComparisonScreenState extends State<ComparisonScreen> {
   @override
   Widget build(BuildContext context) {
     final isWide = Responsive.isWide(context);
-    return Scaffold(
-      backgroundColor: AppColors.bgOf(context),
-      drawer: isWide
-          ? null
-          : const Drawer(
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              child: NavBar(currentIndex: 2),
-            ),
-      body: SafeArea(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (isWide) const NavBar(currentIndex: 2),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AppHeader(title: 'Comparação', showMenuButton: !isWide),
-                  Divider(color: AppColors.borderOf(context), height: 1),
-                  Expanded(
-                    child: SelectionArea(
-                      child: _loadingHistory
-                          ? const Center(child: CircularProgressIndicator(color: AppColors.accent))
-                          : _history.length < 2
-                              ? _buildEmptyState()
-                              : _buildContent(isWide),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AppHeader(title: 'Comparação', showMenuButton: !isWide),
+        Divider(color: AppColors.borderOf(context), height: 1),
+        Expanded(
+          child: SelectionArea(
+            child: _loadingHistory
+                ? const Center(child: CircularProgressIndicator(color: AppColors.accent))
+                : _history.length < 2
+                    ? _buildEmptyState()
+                    : _buildContent(isWide),
+          ),
         ),
-      ),
+      ],
     );
   }
 

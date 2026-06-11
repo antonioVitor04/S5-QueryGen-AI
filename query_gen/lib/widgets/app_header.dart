@@ -19,7 +19,7 @@ class AppHeader extends StatelessWidget {
     final ThemeNotifier notifier = MyApp.of(context);
     final bool isDark = notifier.isDark;
 
-    return SizedBox(
+    return SelectionArea(child: SizedBox(
       height: 76,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -76,6 +76,6 @@ class AppHeader extends StatelessWidget {
           ],
         ),
       ),
-    );
+    ));
   }
 }

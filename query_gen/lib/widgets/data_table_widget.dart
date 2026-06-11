@@ -23,7 +23,7 @@ class DataTableWidget extends StatelessWidget {
         headingRowColor: WidgetStateProperty.all(AppColors.surfaceOf(context)),
         dataRowColor: WidgetStateProperty.resolveWith((states) =>
             states.contains(WidgetState.selected)
-                ? AppColors.accent.withOpacity(0.1)
+                ? AppColors.accent.withValues(alpha: 0.1)
                 : AppColors.panelOf(context)),
         dividerThickness: 0.5,
         columnSpacing: 20,

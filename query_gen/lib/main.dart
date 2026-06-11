@@ -1,12 +1,25 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:query_gen/theme/app_colors.dart';
 import 'theme/app_theme.dart';
 import 'theme/theme_notifier.dart';
 import 'services/auth_service.dart';
 import 'screens/login_screen.dart';
-import 'screens/home_screen.dart';
+import 'screens/main_shell.dart';
+import 'utils/routes.dart';
+
+// ignore: unused_element
+// Mantém a referência viva para o GC não desativar a árvore semântica.
+// Necessário para que o plugin JS de acessibilidade possa ler flt-semantics
+// sem exigir que o usuário clique em "Enable accessibility".
+SemanticsHandle? _webSemanticsHandle;
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  if (kIsWeb) {
+    _webSemanticsHandle = SemanticsBinding.instance.ensureSemantics();
+  }
   runApp(const MyApp());
 }
 
@@ -68,9 +81,7 @@ class _SplashRouterState extends State<SplashRouter> {
     if (!mounted) return;
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(
-        builder: (_) => loggedIn ? const HomeScreen() : const LoginScreen(),
-      ),
+      fadeRoute(loggedIn ? const MainShell() : const LoginScreen()),
     );
   }
 

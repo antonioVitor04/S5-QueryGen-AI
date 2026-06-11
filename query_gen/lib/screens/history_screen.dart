@@ -3,8 +3,8 @@ import 'package:flutter/services.dart';
 import '../theme/app_colors.dart';
 import '../utils/responsive.dart';
 import '../services/api_service.dart';
+import '../utils/routes.dart';
 import '../widgets/app_header.dart';
-import '../widgets/navbar/navbar.dart';
 import 'chart_screen.dart';
 
 class HistoryScreen extends StatefulWidget {
@@ -34,7 +34,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     try {
       final data = await ApiService().getHistoricoDados(item['id']);
       if (!mounted) return;
-      Navigator.push(context, MaterialPageRoute(builder: (_) => ChartScreen(
+      Navigator.push(context, fadeRoute(ChartScreen(
         dados: List<dynamic>.from(data['dados'] ?? []),
         tipoGrafico: data['grafico'] ?? 'barra',
         eixoX: data['eixo_x'], eixoY: data['eixo_y'],
@@ -72,41 +72,26 @@ class _HistoryScreenState extends State<HistoryScreen> {
   @override
   Widget build(BuildContext context) {
     final isWide = Responsive.isWide(context);
-    return Scaffold(
-      backgroundColor: AppColors.bgOf(context),
-      drawer: isWide ? null : const Drawer(
-        backgroundColor: Colors.transparent, elevation: 0,
-        child: NavBar(currentIndex: 1),
-      ),
-      body: SafeArea(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (isWide) const NavBar(currentIndex: 1),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AppHeader(title: 'Histórico', showMenuButton: !isWide),
-                  Divider(color: AppColors.borderOf(context), height: 1),
-                  Expanded(
-                    child: _loading
-                        ? const Center(child: CircularProgressIndicator(color: AppColors.accent))
-                        : _items.isEmpty
-                            ? _buildEmptyState(context)
-                            : RefreshIndicator(
-                                onRefresh: _load, color: AppColors.accent,
-                                child: isWide
-                                    ? _buildWebGrid(context)
-                                    : _buildMobileList(context),
-                              ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AppHeader(title: 'Histórico', showMenuButton: !isWide),
+        Divider(color: AppColors.borderOf(context), height: 1),
+        Expanded(
+          child: SelectionArea(
+            child: _loading
+                ? const Center(child: CircularProgressIndicator(color: AppColors.accent))
+                : _items.isEmpty
+                    ? _buildEmptyState(context)
+                    : RefreshIndicator(
+                        onRefresh: _load, color: AppColors.accent,
+                        child: isWide
+                            ? _buildWebGrid(context)
+                            : _buildMobileList(context),
+                      ),
+          ),
         ),
-      ),
+      ],
     );
   }
 

@@ -4,7 +4,8 @@ import '../theme/theme_notifier.dart';
 import '../main.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
-import 'home_screen.dart';
+import '../utils/routes.dart';
+import 'main_shell.dart';
 import 'forgot_password_screen.dart';
 import 'terms_of_use_screen.dart';
 import 'privacy_policy_screen.dart';
@@ -90,7 +91,7 @@ class _LoginScreenState extends State<LoginScreen> {
         final data = await api.login(email, senha);
         await AuthService().saveToken(data['token'], data['email'], nome: data['nome'] as String?);
         if (!mounted) return;
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomeScreen()));
+        Navigator.pushReplacement(context, fadeRoute(const MainShell()));
       } else {
         final nome = _nomeController.text.trim();
         await api.register(email, senha, nome);
@@ -395,7 +396,6 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
 
-    // Se o scroll estiver desativado, usamos apenas um Padding comum
     if (disableScroll) {
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
@@ -403,13 +403,11 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     }
 
-    // Se for mobile, mantém o comportamento original de scroll individual
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
       child: content,
     );
   }
-
 
   Widget _buildRightPanel({bool disableScroll = false}) {
     Widget content = Center(
@@ -520,7 +518,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     decoration: BoxDecoration(
                       color: AppColors.accent,
                       borderRadius: BorderRadius.circular(8),
-                      boxShadow: [BoxShadow(color: AppColors.accent.withOpacity(0.2), blurRadius: 4, offset: const Offset(0, 2))],
+                      boxShadow: [BoxShadow(color: AppColors.accent.withValues(alpha: 0.2), blurRadius: 4, offset: const Offset(0, 2))],
                     ),
                   ),
                 ),
@@ -580,14 +578,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     Text('Li e aceito os ', style: TextStyle(color: AppColors.text2Of(context), fontSize: 12)),
                     GestureDetector(
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TermsOfUseScreen())),
+                      onTap: () => Navigator.push(context, fadeRoute(const TermsOfUseScreen())),
                       child: const Text('Termos de Uso',
                           style: TextStyle(color: AppColors.accent2, fontSize: 12, fontWeight: FontWeight.w600,
                               decoration: TextDecoration.underline, decorationColor: AppColors.accent2)),
                     ),
                     Text(' e a ', style: TextStyle(color: AppColors.text2Of(context), fontSize: 12)),
                     GestureDetector(
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen())),
+                      onTap: () => Navigator.push(context, fadeRoute(const PrivacyPolicyScreen())),
                       child: const Text('Política de Privacidade',
                           style: TextStyle(color: AppColors.accent2, fontSize: 12, fontWeight: FontWeight.w600,
                               decoration: TextDecoration.underline, decorationColor: AppColors.accent2)),
@@ -609,7 +607,7 @@ class _LoginScreenState extends State<LoginScreen> {
             onPressed: (_loading || (!_isLogin && !_acceptedTerms)) ? null : _submit,
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.accent,
-              disabledBackgroundColor: AppColors.accent.withOpacity(0.35),
+              disabledBackgroundColor: AppColors.accent.withValues(alpha: 0.35),
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               elevation: 0,
@@ -651,7 +649,7 @@ class _LoginScreenState extends State<LoginScreen> {
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
         GestureDetector(
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ForgotPasswordScreen())),
+          onTap: () => Navigator.push(context, fadeRoute(const ForgotPasswordScreen())),
           child: const Text('Esqueci a senha',
               style: TextStyle(color: AppColors.accent2, fontSize: 12, fontWeight: FontWeight.w600)),
         ),

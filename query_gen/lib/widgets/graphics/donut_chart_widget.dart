@@ -291,7 +291,7 @@ class _DonutPainter extends CustomPainter {
       text: TextSpan(
         text: '$displayPct%',
         style: TextStyle(
-          color: Color.lerp(pctStartColor, pctEndColor, progress)!,
+          color: Color.lerp(pctStartColor, pctEndColor, progress) ?? pctEndColor,
           fontSize: 18,
           fontWeight: FontWeight.w800,
         ),

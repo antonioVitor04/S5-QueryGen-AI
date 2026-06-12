@@ -53,25 +53,25 @@ class ChartWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (dados.isEmpty) {
-      return const Center(
+      return Center(
         child: Text('Sem dados para exibir',
-            style: TextStyle(color: AppColors.text2)),
+            style: TextStyle(color: AppColors.text2Of(context))),
       );
     }
 
     switch (tipoGrafico) {
       case 'pizza':
-        return _buildPizza();
+        return _buildPizza(context);
       case 'linha':
-        return _buildLinha();
+        return _buildLinha(context);
       case 'barra':
       default:
-        return _buildBarra();
+        return _buildBarra(context);
     }
   }
 
   // ── PIZZA ──────────────────────────────────────────────────
-  Widget _buildPizza() {
+  Widget _buildPizza(BuildContext context) {
     final limitados = dados.take(8).toList();
     final total = limitados.fold<double>(0, (s, d) => s + _valorY(d));
 
@@ -123,8 +123,8 @@ class ChartWidget extends StatelessWidget {
               const SizedBox(width: 5),
               Text(
                 _labelX(e.value),
-                style: const TextStyle(
-                    color: AppColors.text2, fontSize: 11),
+                style: TextStyle(
+                    color: AppColors.text2Of(context), fontSize: 11),
               ),
             ],
           )).toList(),
@@ -134,10 +134,11 @@ class ChartWidget extends StatelessWidget {
   }
 
   // ── BARRA ──────────────────────────────────────────────────
-  Widget _buildBarra() {
+  Widget _buildBarra(BuildContext context) {
     final limitados = dados.take(10).toList();
-    final maxY = limitados.fold<double>(
+    final maxYRaw = limitados.fold<double>(
         0, (m, d) => _valorY(d) > m ? _valorY(d) : m);
+    final maxY = maxYRaw > 0 ? maxYRaw : 1.0;
 
     final groups = limitados.asMap().entries.map((e) =>
       BarChartGroupData(
@@ -163,8 +164,8 @@ class ChartWidget extends StatelessWidget {
           gridData: FlGridData(
             show: true,
             drawVerticalLine: false,
-            getDrawingHorizontalLine: (_) => const FlLine(
-              color: AppColors.border,
+            getDrawingHorizontalLine: (_) => FlLine(
+              color: AppColors.borderOf(context),
               strokeWidth: 0.5,
             ),
           ),
@@ -178,8 +179,8 @@ class ChartWidget extends StatelessWidget {
                   meta: meta,
                   child: Text(
                     _formatNum(v),
-                    style: const TextStyle(
-                        color: AppColors.text3, fontSize: 10),
+                    style: TextStyle(
+                        color: AppColors.text3Of(context), fontSize: 10),
                   ),
                 ),
               ),
@@ -197,8 +198,8 @@ class ChartWidget extends StatelessWidget {
                     meta: meta,
                     child: Text(
                       _labelX(limitados[i]),
-                      style: const TextStyle(
-                          color: AppColors.text3, fontSize: 9),
+                      style: TextStyle(
+                          color: AppColors.text3Of(context), fontSize: 9),
                       textAlign: TextAlign.center,
                     ),
                   );
@@ -213,11 +214,11 @@ class ChartWidget extends StatelessWidget {
           barTouchData: BarTouchData(
             touchTooltipData: BarTouchTooltipData(
               // API atualizada 1.x — getTooltipColor no lugar de tooltipBgColor
-              getTooltipColor: (_) => AppColors.surface,
+              getTooltipColor: (_) => AppColors.surfaceOf(context),
               tooltipBorderRadius: BorderRadius.circular(8),
               getTooltipItem: (group, _, rod, __) => BarTooltipItem(
                 '${_labelX(limitados[group.x])}\n${_formatNum(rod.toY)}',
-                const TextStyle(color: AppColors.text, fontSize: 11),
+                TextStyle(color: AppColors.textOf(context), fontSize: 11),
               ),
             ),
           ),
@@ -227,10 +228,11 @@ class ChartWidget extends StatelessWidget {
   }
 
   // ── LINHA ──────────────────────────────────────────────────
-  Widget _buildLinha() {
+  Widget _buildLinha(BuildContext context) {
     final limitados = dados.take(30).toList();
-    final maxY = limitados.fold<double>(
+    final maxYRaw = limitados.fold<double>(
         0, (m, d) => _valorY(d) > m ? _valorY(d) : m);
+    final maxY = maxYRaw > 0 ? maxYRaw : 1.0;
 
     final spots = limitados.asMap().entries
         .map((e) => FlSpot(e.key.toDouble(), _valorY(e.value)))
@@ -253,7 +255,7 @@ class ChartWidget extends StatelessWidget {
                 getDotPainter: (_, __, ___, ____) => FlDotCirclePainter(
                   radius: 3,
                   color: AppColors.accent,
-                  strokeColor: AppColors.bg,
+                  strokeColor: AppColors.bgOf(context),
                   strokeWidth: 1.5,
                 ),
               ),
@@ -266,8 +268,8 @@ class ChartWidget extends StatelessWidget {
           gridData: FlGridData(
             show: true,
             drawVerticalLine: false,
-            getDrawingHorizontalLine: (_) => const FlLine(
-              color: AppColors.border,
+            getDrawingHorizontalLine: (_) => FlLine(
+              color: AppColors.borderOf(context),
               strokeWidth: 0.5,
             ),
           ),
@@ -281,8 +283,8 @@ class ChartWidget extends StatelessWidget {
                   meta: meta,
                   child: Text(
                     _formatNum(v),
-                    style: const TextStyle(
-                        color: AppColors.text3, fontSize: 10),
+                    style: TextStyle(
+                        color: AppColors.text3Of(context), fontSize: 10),
                   ),
                 ),
               ),
@@ -301,8 +303,8 @@ class ChartWidget extends StatelessWidget {
                     meta: meta,
                     child: Text(
                       _labelX(limitados[i]),
-                      style: const TextStyle(
-                          color: AppColors.text3, fontSize: 9),
+                      style: TextStyle(
+                          color: AppColors.text3Of(context), fontSize: 9),
                     ),
                   );
                 },
@@ -316,7 +318,7 @@ class ChartWidget extends StatelessWidget {
           lineTouchData: LineTouchData(
             touchTooltipData: LineTouchTooltipData(
               // API atualizada 1.x — getTooltipColor no lugar de tooltipBgColor
-              getTooltipColor: (_) => AppColors.surface,
+              getTooltipColor: (_) => AppColors.surfaceOf(context),
               tooltipBorderRadius: BorderRadius.circular(8),
               getTooltipItems: (spots) => spots.map((s) {
                 final i = s.x.toInt();
@@ -324,7 +326,7 @@ class ChartWidget extends StatelessWidget {
                     i < limitados.length ? _labelX(limitados[i]) : '';
                 return LineTooltipItem(
                   '$label\n${_formatNum(s.y)}',
-                  const TextStyle(color: AppColors.text, fontSize: 11),
+                  TextStyle(color: AppColors.textOf(context), fontSize: 11),
                 );
               }).toList(),
             ),

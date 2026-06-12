@@ -111,7 +111,8 @@ class _BarChartWidgetState extends State<BarChartWidget>
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: List.generate(n, (i) {
-                        final isHighlight = widget.highlights[i];
+                        final isHighlight =
+                            i < widget.highlights.length && widget.highlights[i];
                         final barT =
                             ((_barsAnim.value - i * stagger) / remaining)
                                 .clamp(0.0, 1.0);

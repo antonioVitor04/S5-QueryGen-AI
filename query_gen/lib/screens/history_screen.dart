@@ -25,8 +25,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Future<void> _load() async {
     try {
       final data = await ApiService().getHistorico();
+      if (!mounted) return;
       setState(() { _items = data; _loading = false; });
-    } catch (_) { setState(() => _loading = false); }
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _loading = false);
+    }
   }
 
   Future<void> _verDados(dynamic item) async {
@@ -48,8 +52,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   Future<void> _deletar(int id) async {
-    await ApiService().deletarHistorico(id);
-    setState(() => _items.removeWhere((i) => i['id'] == id));
+    try {
+      await ApiService().deletarHistorico(id);
+      if (!mounted) return;
+      setState(() => _items.removeWhere((i) => i['id'] == id));
+    } catch (_) {
+      if (!mounted) return;
+      _showSnack('Erro ao deletar registro', AppColors.red);
+    }
   }
 
   String _formatDate(String? raw) {

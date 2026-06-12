@@ -15,7 +15,14 @@ class DataTableWidget extends StatelessWidget {
       );
     }
 
-    final colunas = (dados.first as Map).keys.toList();
+    final primeiro = dados.first;
+    if (primeiro is! Map) {
+      return Center(
+        child: Text('Formato de dados inválido',
+            style: TextStyle(color: AppColors.text2Of(context))),
+      );
+    }
+    final colunas = primeiro.keys.toList();
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,

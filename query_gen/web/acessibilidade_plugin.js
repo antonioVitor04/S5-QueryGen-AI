@@ -92,13 +92,6 @@
       background-color: rgba(255,214,0,0.18) !important;
       border-radius: 3px !important;
     }
-
-    /* O flt-glass-pane do Flutter cobre toda a viewport e pode ficar acima
-       do widget do VLibras (anexado depois em document.body). Forçamos o
-       widget para o topo da pilha de empilhamento. */
-    div[vw], div[vw].enabled, div[vw-access-button], div[vw-plugin-wrapper] {
-      z-index: 2147483647 !important;
-    }
   `;
   document.head.appendChild(style);
 
@@ -143,21 +136,6 @@
 
       <hr class="acc-divisor">
 
-      <div class="acc-secao">
-        <div class="acc-secao-titulo">Língua de sinais (LIBRAS)</div>
-        <div class="acc-btn-grupo">
-          <button class="acc-btn" id="acc-vlibras" aria-label="Ativar tradutor VLibras">
-            Ativar VLibras
-          </button>
-        </div>
-        <p style="font-size:11px; color:#78909C; margin-top:8px; line-height:1.5;">
-          Tradutor oficial de Libras (governo federal). Traduz textos
-          selecionáveis da interface.
-        </p>
-      </div>
-
-      <hr class="acc-divisor">
-
       <div class="acc-status" id="acc-status" aria-live="polite" aria-atomic="true">
         Pronto para leitura
       </div>
@@ -195,14 +173,6 @@
       if (nos.length) return nos;
     }
     return [];
-  }
-
-  // Verifica se a árvore semântica do Flutter já está disponível
-  function semanticsEnabled() {
-    if (document.querySelector('flt-semantics[aria-label], flt-semantics[role]')) return true;
-    const s = getShadow();
-    if (!s) return false;
-    return s.querySelector('flt-semantics[aria-label], flt-semantics[role]') !== null;
   }
 
   /* ─────────────── FILTRO DE CÓDIGO INTERNO ─────────────── */
@@ -445,44 +415,6 @@
     falar(texto);
   }
 
-  /* ─────────────── VLIBRAS ─────────────── */
-  let vlibrasAtivo = false;
-  function ativarVLibras() {
-    if (vlibrasAtivo) { setStatus('VLibras já está ativo.'); return; }
-    vlibrasAtivo = true;
-    const btn = document.getElementById('acc-vlibras');
-    if (btn) { btn.textContent = 'VLibras ativo'; btn.classList.add('ativo'); }
-
-    const div = document.createElement('div');
-    div.setAttribute('vw', '');
-    div.className = 'enabled';
-    div.innerHTML = `
-      <div vw-access-button class="active"></div>
-      <div vw-plugin-wrapper><div class="vw-plugin-top-wrapper"></div></div>`;
-    document.body.appendChild(div);
-
-    // O #acc-fab ocupa o canto inferior direito; move o botão do VLibras
-    // para o esquerdo e aproxima a cor do azul do app.
-    const fix = document.createElement('style');
-    fix.textContent = `
-      div[vw][vw] [vw-access-button] {
-        bottom: 24px !important; left: 24px !important; right: auto !important;
-        transform: scale(0.85); filter: hue-rotate(8deg) saturate(0.9);
-      }`;
-    document.head.appendChild(fix);
-
-    const s = document.createElement('script');
-    s.src = 'https://vlibras.gov.br/app/vlibras-plugin.js';
-    s.onload = () => {
-      try {
-        new window.VLibras.Widget('https://vlibras.gov.br/app');
-        setStatus('VLibras iniciado. Clique no ícone azul.');
-      } catch (e) { setStatus('Erro ao iniciar VLibras.'); }
-    };
-    s.onerror = () => setStatus('VLibras indisponível (sem internet?).');
-    document.body.appendChild(s);
-  }
-
   /* ─────────────── EVENTOS DO PAINEL ─────────────── */
   fab.addEventListener('click', () => {
     painelAberto = !painelAberto;
@@ -526,7 +458,6 @@
       setStatus('Leitura interrompida'); atualizarBotoes();
     }
     if (id === 'acc-modo-clique') ativarModoClique();
-    if (id === 'acc-vlibras')     ativarVLibras();
   });
 
   /* ─────────────── SLIDERS ─────────────── */

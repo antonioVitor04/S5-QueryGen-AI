@@ -45,6 +45,8 @@ class _ComparisonScreenState extends State<ComparisonScreen> {
     'quantas', 'quanto', 'quanta', 'geral', 'total', 'atual',
   };
 
+  String _graficoOf(dynamic item) => item['grafico'] ?? 'barra';
+
   Set<String> _extractKeywords(String text) => text
       .toLowerCase()
       .replaceAll(RegExp(r'[^\w\s]'), ' ')
@@ -59,8 +61,10 @@ class _ComparisonScreenState extends State<ComparisonScreen> {
 
   List<dynamic> _computeSimilar(dynamic pivot) {
     final keywords = _extractKeywords((pivot['pergunta'] ?? '') as String);
+    final tipo = _graficoOf(pivot);
     return _history
         .where((item) => item['id'] != pivot['id'])
+        .where((item) => _graficoOf(item) == tipo)
         .where((item) => _score(item, keywords) > 0)
         .toList()
       ..sort((a, b) => _score(b, keywords).compareTo(_score(a, keywords)));
@@ -179,7 +183,8 @@ class _ComparisonScreenState extends State<ComparisonScreen> {
   Widget _buildSelectorCard(bool isWide) {
     final canCompare = _selectedA != null &&
         _selectedB != null &&
-        _selectedA['id'] != _selectedB['id'];
+        _selectedA['id'] != _selectedB['id'] &&
+        _graficoOf(_selectedA) == _graficoOf(_selectedB);
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -197,7 +202,9 @@ class _ComparisonScreenState extends State<ComparisonScreen> {
                   fontSize: 14,
                   fontWeight: FontWeight.w600)),
           const SizedBox(height: 4),
-          Text('Scripts de tema similar aparecem destacados no topo da lista B',
+          Text(
+              'Apenas scripts do mesmo tipo de gráfico podem ser comparados. '
+              'Os de tema similar aparecem destacados no topo da lista B',
               style: TextStyle(color: AppColors.text3Of(context), fontSize: 12)),
           const SizedBox(height: 16),
           if (isWide)
@@ -275,8 +282,15 @@ class _ComparisonScreenState extends State<ComparisonScreen> {
               items: _history.map<DropdownMenuItem<dynamic>>((item) {
                 return DropdownMenuItem<dynamic>(
                   value: item,
-                  child: Text(item['pergunta'] ?? '',
-                      overflow: TextOverflow.ellipsis, maxLines: 1),
+                  child: Row(children: [
+                    Icon(_iconGrafico(_graficoOf(item)),
+                        size: 14, color: AppColors.text3Of(context)),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(item['pergunta'] ?? '',
+                          overflow: TextOverflow.ellipsis, maxLines: 1),
+                    ),
+                  ]),
                 );
               }).toList(),
               onChanged: (v) { if (v != null) _onSelectA(v); },
@@ -291,10 +305,16 @@ class _ComparisonScreenState extends State<ComparisonScreen> {
 
   Widget _buildDropdownB() {
     final disabled = _selectedA == null;
+    final tipoA = disabled ? null : _graficoOf(_selectedA);
     final similarIds = _similarHistory.map((i) => i['id']).toSet();
-    final others = _history
-        .where((i) => i['id'] != _selectedA?['id'] && !similarIds.contains(i['id']))
-        .toList();
+    final others = disabled
+        ? <dynamic>[]
+        : _history
+            .where((i) =>
+                i['id'] != _selectedA['id'] &&
+                !similarIds.contains(i['id']) &&
+                _graficoOf(i) == tipoA)
+            .toList();
 
     final isValueValid = _selectedB != null &&
         _history.any((i) => i['id'] == _selectedB['id']);
@@ -344,12 +364,19 @@ class _ComparisonScreenState extends State<ComparisonScreen> {
         ));
       }
 
-      // Demais scripts
+      // Demais scripts (mesmo tipo de gráfico)
       for (final item in others) {
         menuItems.add(DropdownMenuItem<dynamic>(
           value: item,
-          child: Text(item['pergunta'] ?? '',
-              overflow: TextOverflow.ellipsis, maxLines: 1),
+          child: Row(children: [
+            Icon(_iconGrafico(_graficoOf(item)),
+                size: 14, color: AppColors.text3Of(context)),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(item['pergunta'] ?? '',
+                  overflow: TextOverflow.ellipsis, maxLines: 1),
+            ),
+          ]),
         ));
       }
     }
@@ -357,7 +384,7 @@ class _ComparisonScreenState extends State<ComparisonScreen> {
     final hint = disabled
         ? 'Selecione o Script A primeiro'
         : menuItems.isEmpty
-            ? 'Nenhum script disponível'
+            ? 'Nenhum outro script de ${_labelGrafico(tipoA!).toLowerCase()}'
             : _similarHistory.isNotEmpty
                 ? 'Scripts similares no topo...'
                 : 'Selecionar script...';
@@ -371,6 +398,25 @@ class _ComparisonScreenState extends State<ComparisonScreen> {
                   color: AppColors.text2Of(context),
                   fontSize: 12,
                   fontWeight: FontWeight.w500)),
+          if (!disabled) ...[
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppColors.accent.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                Icon(_iconGrafico(tipoA!), size: 10, color: AppColors.accent2),
+                const SizedBox(width: 4),
+                Text(_labelGrafico(tipoA),
+                    style: const TextStyle(
+                        color: AppColors.accent2,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600)),
+              ]),
+            ),
+          ],
           if (!disabled && _similarHistory.isNotEmpty) ...[
             const SizedBox(width: 8),
             Container(

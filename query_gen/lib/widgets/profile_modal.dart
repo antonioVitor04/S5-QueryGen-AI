@@ -99,7 +99,8 @@ class _ProfileModalState extends State<_ProfileModal> {
         bytes, targetWidth: 400, targetHeight: 400);
     final frame    = await codec.getNextFrame();
     final byteData = await frame.image.toByteData(format: ui.ImageByteFormat.png);
-    return byteData!.buffer.asUint8List();
+    if (byteData == null) return bytes;
+    return byteData.buffer.asUint8List();
   }
 
   Future<void> _salvarPerfil() async {

@@ -397,7 +397,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     );
   }
 
-Widget _buildRightPanel(BuildContext context) {
+  Widget _buildRightPanel(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.bgOf(context),

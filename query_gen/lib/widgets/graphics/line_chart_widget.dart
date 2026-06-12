@@ -173,6 +173,10 @@ class _LinePainter extends CustomPainter {
 
   List<Offset> _points(List<double> data, Size size) {
     final n = data.length;
+    if (n == 0) return const [];
+    if (n == 1) {
+      return [Offset(0, (1.0 - data[0]) * size.height)];
+    }
     return List.generate(n, (i) {
       final x = i / (n - 1) * size.width;
       final y = (1.0 - data[i]) * size.height;
@@ -195,6 +199,10 @@ class _LinePainter extends CustomPainter {
 
   Offset _tipAt(Size size, double progress) {
     final n = data2025.length;
+    if (n < 2) {
+      final y = (1.0 - (data2025.isEmpty ? 0 : data2025[0])) * size.height;
+      return Offset(size.width * progress, y);
+    }
     final xProgress = progress * (n - 1);
     final i = xProgress.floor().clamp(0, n - 2);
     final t = xProgress - i;

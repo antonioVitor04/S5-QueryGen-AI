@@ -95,6 +95,7 @@ class _LoginScreenState extends State<LoginScreen> {
       } else {
         final nome = _nomeController.text.trim();
         await api.register(email, senha, nome);
+        if (!mounted) return;
         _showSnack('Conta criada! Faça login.', AppColors.green);
         setState(() { _isLogin = true; _clearFields(); });
       }
@@ -188,7 +189,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 right: 8,
                 top: 8,
                 child: IconButton(
-                  icon: const Icon(Icons.close, color: AppColors.text3, size: 22),
+                  icon: Icon(Icons.close, color: AppColors.text3Of(context), size: 22),
                   onPressed: () => Navigator.pop(context),
                 ),
               ),

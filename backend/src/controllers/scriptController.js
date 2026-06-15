@@ -212,6 +212,10 @@ async function gerarScript(req, res) {
   const { pergunta } = req.body;
   const userId       = req.user?.id;
 
+  if (!userId) {
+    return res.status(401).json({ erro: 'Não autenticado' });
+  }
+
   // ── Validação de entrada ──────────────────────────────────
   if (!pergunta || typeof pergunta !== 'string' || !pergunta.trim()) {
     return res.status(400).json({ erro: 'Pergunta não pode ser vazia' });

@@ -19,8 +19,7 @@ transporter.verify((error) => {
 });
 
 async function enviarEmailRecuperacao(emailDestino, token) {
-  console.log('Enviando email para:', emailDestino);
-  console.log('Token gerado:', token);
+  console.log('Enviando email de recuperação para:', emailDestino);
 
   await transporter.sendMail({
     from: `"QueryGen AI" <${process.env.EMAIL_USER}>`,

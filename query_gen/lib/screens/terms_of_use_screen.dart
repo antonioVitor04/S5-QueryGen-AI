@@ -65,7 +65,7 @@ class TermsOfUseScreen extends StatelessWidget {
                   children: [
                     SizedBox(
                       width: 70, height: 70,
-                      child: Image.asset('assets/Logo QueryGen (1).png', fit: BoxFit.contain),
+                      child: Image.asset('assets/Logo QueryGen.png', fit: BoxFit.contain),
                     ),
                     const SizedBox(height: 6),
                     RichText(

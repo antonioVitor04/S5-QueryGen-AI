@@ -134,7 +134,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     SizedBox(
                       width: 60,
                       height: 60,
-                      child: Image.asset('assets/Logo QueryGen (1).png', fit: BoxFit.contain),
+                      child: Image.asset('assets/Logo QueryGen.png', fit: BoxFit.contain),
                     ),
                     const SizedBox(height: 16),
                     
@@ -340,7 +340,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 width: 90,
                 height: 90,
                 child: Image.asset(
-                  'assets/Logo QueryGen (1).png',
+                  'assets/Logo QueryGen.png',
                   fit: BoxFit.contain,
                 ),
               ),
@@ -473,7 +473,7 @@ class _LoginScreenState extends State<LoginScreen> {
       children: [
         SizedBox(
           width: 90, height: 90,
-          child: Image.asset('assets/Logo QueryGen (1).png', fit: BoxFit.contain),
+          child: Image.asset('assets/Logo QueryGen.png', fit: BoxFit.contain),
         ),
         const SizedBox(height: 6),
         RichText(

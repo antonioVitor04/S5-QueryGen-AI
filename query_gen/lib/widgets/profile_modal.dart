@@ -216,9 +216,10 @@ class _ProfileModalState extends State<_ProfileModal> {
           ),
           IconButton(
             icon: Icon(Icons.close, color: AppColors.text3Of(context), size: 20),
+            tooltip: 'Fechar',
             onPressed: () => Navigator.of(context).pop(),
             padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
+            constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
           ),
         ],
       ),
@@ -253,24 +254,36 @@ class _ProfileModalState extends State<_ProfileModal> {
   Widget _buildAvatar(BuildContext context) {
     return Stack(
       children: [
-        GestureDetector(
-          onTap: _alterarFoto,
-          child: Container(
-            width: 88, height: 88,
-            decoration: BoxDecoration(
-              color: AppColors.panelOf(context),
-              shape: BoxShape.circle,
-              border: Border.all(color: AppColors.borderOf(context), width: 2),
-            ),
-            child: ClipOval(
-              child: _fotoBytes != null
-                  ? Image.memory(_fotoBytes!, fit: BoxFit.cover, width: 88, height: 88)
-                  : Center(child: Icon(Icons.person, size: 38, color: AppColors.text3Of(context))),
+        Semantics(
+          button: true,
+          label: 'Alterar foto de perfil',
+          child: GestureDetector(
+            onTap: _alterarFoto,
+            child: Container(
+              width: 88, height: 88,
+              decoration: BoxDecoration(
+                color: AppColors.panelOf(context),
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.borderOf(context), width: 2),
+              ),
+              child: ClipOval(
+                child: _fotoBytes != null
+                    ? Image.memory(
+                        _fotoBytes!,
+                        fit: BoxFit.cover,
+                        width: 88, height: 88,
+                        errorBuilder: (_, __, ___) => Center(
+                          child: Icon(Icons.broken_image_outlined, size: 38, color: AppColors.text3Of(context)),
+                        ),
+                      )
+                    : Center(child: Icon(Icons.person, size: 38, color: AppColors.text3Of(context))),
+              ),
             ),
           ),
         ),
         Positioned(
           bottom: 0, right: 0,
+          child: ExcludeSemantics(
           child: GestureDetector(
             onTap: _alterarFoto,
             child: Container(
@@ -282,6 +295,7 @@ class _ProfileModalState extends State<_ProfileModal> {
               ),
               child: const Icon(Icons.camera_alt, size: 13, color: Colors.white),
             ),
+          ),
           ),
         ),
       ],
@@ -393,6 +407,7 @@ class _ProfileModalState extends State<_ProfileModal> {
                         obscure ? Icons.visibility_off : Icons.visibility,
                         color: AppColors.text3Of(context),
                         size: 18),
+                    tooltip: obscure ? 'Mostrar senha' : 'Ocultar senha',
                     onPressed: toggleObscure,
                   )
                 : null,

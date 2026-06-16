@@ -7,14 +7,15 @@ import '../widgets/graphics/bar_chart_widget.dart';
 import '../widgets/graphics/donut_chart_widget.dart';
 import '../widgets/graphics/line_chart_widget.dart';
 import '../widgets/graphics/stat_pill_widget.dart';
+import '../utils/legal_texts.dart';
+import '../utils/responsive.dart';
 
 class TermsOfUseScreen extends StatelessWidget {
   const TermsOfUseScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isDesktop = screenWidth > 1100;
+    final isDesktop = Responsive.isDesktop(context);
     final ThemeNotifier notifier = MyApp.of(context);
     final bool isDark = notifier.isDark;
 
@@ -86,35 +87,27 @@ class TermsOfUseScreen extends StatelessWidget {
                   style: TextStyle(color: AppColors.textOf(context), fontSize: 22, fontWeight: FontWeight.w700, letterSpacing: -0.5)),
               const SizedBox(height: 16),
 
-              Text('Ao utilizar esta plataforma, você concorda com todos os termos e condições estabelecidos neste documento.',
+              Text(LegalTexts.termsSubtitle,
                   textAlign: TextAlign.center,
                   style: TextStyle(color: AppColors.text2Of(context), fontSize: 13, height: 1.6)),
               const SizedBox(height: 24),
 
-              _buildSection(context, '1. Uso da Plataforma',
-                  'O usuário se compromete a utilizar o sistema de forma responsável, ética e dentro das leis vigentes. O acesso à plataforma é pessoal e intransferível.'),
-              _buildSection(context, '2. Conta do Usuário',
-                  'Você é responsável pela segurança da sua conta e das informações fornecidas durante o cadastro. Mantenha sua senha em sigilo e não compartilhe suas credenciais.'),
-              _buildSection(context, '3. Proibições',
-                  'É proibido utilizar a plataforma para spam, ataques ou qualquer atividade maliciosa. Tentativas de acesso não autorizado serão reportadas às autoridades competentes.'),
-              _buildSection(context, '4. Propriedade Intelectual',
-                  'Todo o conteúdo disponível na plataforma é protegido por direitos autorais. É vedada a reprodução, distribuição ou modificação sem autorização prévia.'),
-              _buildSection(context, '5. Limitação de Responsabilidade',
-                  'A plataforma não se responsabiliza por danos indiretos decorrentes do uso ou da incapacidade de uso dos serviços oferecidos.'),
-              _buildSection(context, '6. Alterações nos Termos',
-                  'Reservamos o direito de modificar estes termos a qualquer momento. O uso continuado da plataforma após as alterações constitui aceitação dos novos termos.'),
+              ...LegalTexts.termsSections.map((sec) => _buildSection(context, sec.title, sec.content)),
 
               const SizedBox(height: 32),
 
               GestureDetector(
                 onTap: () => Navigator.of(context).pop(),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.arrow_back, color: AppColors.text3Of(context), size: 14),
-                    const SizedBox(width: 6),
-                    Text('Voltar para cadastro', style: TextStyle(color: AppColors.text3Of(context), fontSize: 13)),
-                  ],
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.arrow_back, color: AppColors.text3Of(context), size: 14),
+                      const SizedBox(width: 6),
+                      Text('Voltar para cadastro', style: TextStyle(color: AppColors.text3Of(context), fontSize: 13)),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 24),

@@ -14,6 +14,8 @@ import '../widgets/graphics/bar_chart_widget.dart';
 import '../widgets/graphics/donut_chart_widget.dart';
 import '../widgets/graphics/line_chart_widget.dart';
 import '../widgets/graphics/stat_pill_widget.dart';
+import '../utils/legal_texts.dart';
+import '../utils/responsive.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -115,7 +117,7 @@ class _LoginScreenState extends State<LoginScreen> {
     ));
   }
 
-  void _showLegalModal(String title, List<Map<String, String>> sections, String subtitle) {
+  void _showLegalModal(String title, List<LegalSection> sections, String subtitle) {
     showDialog(
       context: context,
       builder: (context) => Dialog(
@@ -166,12 +168,12 @@ class _LoginScreenState extends State<LoginScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  sec['title']!,
+                                  sec.title,
                                   style: const TextStyle(color: AppColors.accent2, fontSize: 15, fontWeight: FontWeight.bold),
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  sec['content']!,
+                                  sec.content,
                                   style: TextStyle(color: AppColors.textOf(context), fontSize: 14, height: 1.5),
                                 ),
                               ],
@@ -190,6 +192,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 top: 8,
                 child: IconButton(
                   icon: Icon(Icons.close, color: AppColors.text3Of(context), size: 22),
+                  tooltip: 'Fechar',
                   onPressed: () => Navigator.pop(context),
                 ),
               ),
@@ -201,40 +204,17 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void showTerms() {
-    _showLegalModal(
-      'Termos de Uso',
-      [
-        {'title': '1. Uso da Plataforma', 'content': 'O usuário se compromete a utilizar o sistema de forma responsável, ética e dentro das leis vigentes. O acesso à plataforma é pessoal e intransferível.'},
-        {'title': '2. Conta do Usuário', 'content': 'Você é responsável pela segurança da sua conta e das informações fornecidas durante o cadastro. Mantenha sua senha em sigilo e não compartilhe suas credenciais.'},
-        {'title': '3. Proibições', 'content': 'É proibido utilizar a plataforma para spam, ataques ou qualquer atividade maliciosa. Tentativas de acesso não autorizado serão reportadas às autoridades competentes.'},
-        {'title': '4. Propriedade Intelectual', 'content': 'Todo o conteúdo disponível na plataforma é protegido por direitos autorais. É vedada a reprodução, distribuição ou modificação sem autorização prévia.'},
-        {'title': '5. Limitação de Responsabilidade', 'content': 'A plataforma não se responsabiliza por danos indiretos decorrentes do uso ou da incapacidade de uso dos serviços oferecidos.'},
-        {'title': '6. Alterações nos Termos', 'content': 'Reservamos o direito de modificar estes termos a qualquer momento. O uso continuado da plataforma após as alterações constitui aceitação dos novos termos.'},
-      ],
-      'Ao utilizar esta plataforma, você concorda com todos os termos e condições estabelecidos neste documento.',
-    );
+    _showLegalModal('Termos de Uso', LegalTexts.termsSections, LegalTexts.termsSubtitle);
   }
 
   void showPrivacy() {
-    _showLegalModal(
-      'Política de Privacidade',
-      [
-        {'title': '1. Coleta de Dados', 'content': 'Coletamos apenas informações necessárias para o funcionamento da plataforma, como nome, e-mail e dados de uso. Não coletamos dados sensíveis sem consentimento explícito.'},
-        {'title': '2. Compartilhamento', 'content': 'Não compartilhamos seus dados pessoais com terceiros sem autorização, exceto quando exigido por lei ou para prestação dos serviços contratados.'},
-        {'title': '3. Segurança', 'content': 'Aplicamos medidas técnicas e organizacionais para proteger suas informações contra acesso não autorizado, perda ou destruição acidental.'},
-        {'title': '4. Cookies', 'content': 'Utilizamos cookies para melhorar sua experiência. Você pode desativá-los nas configurações do navegador, mas isso pode afetar algumas funcionalidades.'},
-        {'title': '5. Seus Direitos', 'content': 'Você tem direito de acessar, corrigir ou solicitar a exclusão de seus dados pessoais a qualquer momento, conforme previsto pela LGPD.'},
-        {'title': '6. Retenção de Dados', 'content': 'Mantemos seus dados pelo tempo necessário para a prestação dos serviços ou conforme exigido por obrigações legais. Após esse período, os dados são excluídos com segurança.'},
-      ],
-      'Sua privacidade é importante para nós. Todas as informações fornecidas são protegidas e armazenadas com segurança.',
-    );
+    _showLegalModal('Política de Privacidade', LegalTexts.privacySections, LegalTexts.privacySubtitle);
   }
 
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isDesktop = screenWidth > 1100;
+    final isDesktop = Responsive.isDesktop(context);
 
     if (!isDesktop) {
       // No Mobile, renderiza apenas o esquerdo com o scroll interno ativo
@@ -374,12 +354,18 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 24),
                 GestureDetector(
                   onTap: showTerms,
-                  child: Text('Termos e condições', style: infoStyle),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Text('Termos e condições', style: infoStyle),
+                  ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
                 GestureDetector(
                   onTap: showPrivacy,
-                  child: Text('Política de privacidade', style: infoStyle),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Text('Política de privacidade', style: infoStyle),
+                  ),
                 ),
               ],
             ),
@@ -605,7 +591,7 @@ class _LoginScreenState extends State<LoginScreen> {
         SizedBox(
           width: double.infinity, height: 45,
           child: ElevatedButton(
-            onPressed: (_loading || (!_isLogin && !_acceptedTerms)) ? null : _submit,
+            onPressed: _loading ? null : _submit,
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.accent,
               disabledBackgroundColor: AppColors.accent.withValues(alpha: 0.35),
@@ -651,8 +637,11 @@ class _LoginScreenState extends State<LoginScreen> {
       children: [
         GestureDetector(
           onTap: () => Navigator.push(context, fadeRoute(const ForgotPasswordScreen())),
-          child: const Text('Esqueci a senha',
-              style: TextStyle(color: AppColors.accent2, fontSize: 12, fontWeight: FontWeight.w600)),
+          child: const Padding(
+            padding: EdgeInsets.symmetric(vertical: 10),
+            child: Text('Esqueci a senha',
+                style: TextStyle(color: AppColors.accent2, fontSize: 12, fontWeight: FontWeight.w600)),
+          ),
         ),
       ],
     );
@@ -709,6 +698,7 @@ class _LoginScreenState extends State<LoginScreen> {
             fillColor: AppColors.surfaceOf(context),
             suffixIcon: IconButton(
               icon: Icon(obscure ? Icons.visibility_off : Icons.visibility, color: AppColors.text3Of(context), size: 20),
+              tooltip: obscure ? 'Mostrar senha' : 'Ocultar senha',
               onPressed: onToggle,
             ),
           ),

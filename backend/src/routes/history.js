@@ -2,6 +2,7 @@ const express = require('express');
 const router  = express.Router();
 const authMiddleware = require('../middleware/auth');
 const db = require('../db/connection');
+const { validarSqlArmazenado } = require('../sap/sqlBuilder');
 
 router.get('/historico', authMiddleware, async (req, res) => {
   try {
@@ -34,8 +35,9 @@ router.get('/historico/:id/dados', authMiddleware, async (req, res) => {
 
     const registro = rows[0];
 
-    // Defesa extra: só reexecuta consultas de leitura (buildSQL sempre gera SELECT).
-    if (!/^\s*SELECT\s/i.test(registro.sql_gerado)) {
+    // Defesa extra: só reexecuta SQL que ainda corresponda ao formato gerado
+    // por buildSQL (apenas tabelas/colunas conhecidas, sem UNION/subqueries/etc.).
+    if (!validarSqlArmazenado(registro.sql_gerado)) {
       return res.status(400).json({ erro: 'Consulta armazenada inválida' });
     }
 

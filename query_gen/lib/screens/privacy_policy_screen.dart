@@ -7,14 +7,15 @@ import '../widgets/graphics/bar_chart_widget.dart';
 import '../widgets/graphics/donut_chart_widget.dart';
 import '../widgets/graphics/line_chart_widget.dart';
 import '../widgets/graphics/stat_pill_widget.dart';
+import '../utils/legal_texts.dart';
+import '../utils/responsive.dart';
 
 class PrivacyPolicyScreen extends StatelessWidget {
   const PrivacyPolicyScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isDesktop = screenWidth > 1100;
+    final isDesktop = Responsive.isDesktop(context);
     final ThemeNotifier notifier = MyApp.of(context);
     final bool isDark = notifier.isDark;
 
@@ -86,35 +87,27 @@ class PrivacyPolicyScreen extends StatelessWidget {
                   style: TextStyle(color: AppColors.textOf(context), fontSize: 22, fontWeight: FontWeight.w700, letterSpacing: -0.5)),
               const SizedBox(height: 16),
 
-              Text('Sua privacidade é importante para nós. Todas as informações fornecidas são protegidas e armazenadas com segurança.',
+              Text(LegalTexts.privacySubtitle,
                   textAlign: TextAlign.center,
                   style: TextStyle(color: AppColors.text2Of(context), fontSize: 13, height: 1.6)),
               const SizedBox(height: 24),
 
-              _buildSection(context, '1. Coleta de Dados',
-                  'Coletamos apenas informações necessárias para funcionamento da plataforma, como nome, e-mail e dados de uso. Não coletamos dados sensíveis sem consentimento explícito.'),
-              _buildSection(context, '2. Compartilhamento',
-                  'Não compartilhamos seus dados pessoais com terceiros sem autorização, exceto quando exigido por lei ou para prestação dos serviços contratados.'),
-              _buildSection(context, '3. Segurança',
-                  'Aplicamos medidas técnicas e organizacionais para proteger suas informações contra acesso não autorizado, perda ou destruição acidental.'),
-              _buildSection(context, '4. Cookies',
-                  'Utilizamos cookies para melhorar sua experiência na plataforma. Você pode desativá-los nas configurações do seu navegador, mas isso pode afetar algumas funcionalidades.'),
-              _buildSection(context, '5. Seus Direitos',
-                  'Você tem direito de acessar, corrigir ou solicitar a exclusão de seus dados pessoais a qualquer momento, conforme previsto pela LGPD.'),
-              _buildSection(context, '6. Retenção de Dados',
-                  'Mantemos seus dados pelo tempo necessário para a prestação dos serviços ou conforme exigido por obrigações legais. Após esse período, os dados são excluídos com segurança.'),
+              ...LegalTexts.privacySections.map((sec) => _buildSection(context, sec.title, sec.content)),
 
               const SizedBox(height: 32),
 
               GestureDetector(
                 onTap: () => Navigator.of(context).pop(),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.arrow_back, color: AppColors.text3Of(context), size: 14),
-                    const SizedBox(width: 6),
-                    Text('Voltar para cadastro', style: TextStyle(color: AppColors.text3Of(context), fontSize: 13)),
-                  ],
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.arrow_back, color: AppColors.text3Of(context), size: 14),
+                      const SizedBox(width: 6),
+                      Text('Voltar para cadastro', style: TextStyle(color: AppColors.text3Of(context), fontSize: 13)),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 24),

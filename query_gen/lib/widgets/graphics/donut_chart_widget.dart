@@ -157,14 +157,17 @@ class _DonutChartWidgetState extends State<DonutChartWidget>
                                         ),
                                         child: Row(children: [
                                           Expanded(
-                                            child: Text(
-                                              seg.label,
-                                              style: TextStyle(
-                                                color: AppColors.text2Of(context),
-                                                fontSize: 11,
+                                            child: Tooltip(
+                                              message: seg.label,
+                                              child: Text(
+                                                seg.label,
+                                                style: TextStyle(
+                                                  color: AppColors.text2Of(context),
+                                                  fontSize: 11,
+                                                ),
+                                                overflow:
+                                                    TextOverflow.ellipsis,
                                               ),
-                                              overflow:
-                                                  TextOverflow.ellipsis,
                                             ),
                                           ),
                                           const SizedBox(width: 4),

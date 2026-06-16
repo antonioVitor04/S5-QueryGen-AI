@@ -31,6 +31,7 @@ class AppHeader extends StatelessWidget {
               Builder(
                 builder: (ctx) => IconButton(
                   icon: Icon(Icons.menu, color: AppColors.textOf(context)),
+                  tooltip: 'Abrir menu',
                   onPressed: () => Scaffold.of(ctx).openDrawer(),
                 ),
               ),

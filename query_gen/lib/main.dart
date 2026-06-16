@@ -26,9 +26,9 @@ void main() {
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
   static ThemeNotifier of(BuildContext context) {
-    return context
-        .findAncestorStateOfType<_MyAppState>()!
-        .themeNotifier;
+    final state = context.findAncestorStateOfType<_MyAppState>();
+    assert(state != null, 'MyApp.of() called without a MyApp ancestor in the widget tree.');
+    return state!.themeNotifier;
   }
 
   @override

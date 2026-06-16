@@ -131,6 +131,7 @@ class _LineChartWidgetState extends State<LineChartWidget>
                         data2024: widget.data2024,
                         lineColor: widget.lineColor,
                         ghostColor: ghostColor,
+                        dotColor: AppColors.panelOf(context),
                         lineProgress: _lineAnim.value,
                       ),
                       child: const SizedBox.expand(),
@@ -161,6 +162,7 @@ class _LinePainter extends CustomPainter {
   final List<double> data2024;
   final Color lineColor;
   final Color ghostColor;
+  final Color dotColor;
   final double lineProgress;
 
   _LinePainter({
@@ -168,6 +170,7 @@ class _LinePainter extends CustomPainter {
     required this.data2024,
     required this.lineColor,
     required this.ghostColor,
+    required this.dotColor,
     required this.lineProgress,
   });
 
@@ -278,13 +281,15 @@ class _LinePainter extends CustomPainter {
           ..color = lineColor.withValues(alpha: 0.45)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
       );
-      canvas.drawCircle(tip, 3, Paint()..color = Colors.white);
+      canvas.drawCircle(tip, 3, Paint()..color = dotColor);
     }
   }
 
   @override
   bool shouldRepaint(covariant _LinePainter old) =>
-      old.lineProgress != lineProgress || old.ghostColor != ghostColor;
+      old.lineProgress != lineProgress ||
+      old.ghostColor != ghostColor ||
+      old.dotColor != dotColor;
 }
 
 class _LegendDot extends StatelessWidget {

@@ -212,6 +212,10 @@ async function gerarScript(req, res) {
   const { pergunta } = req.body;
   const userId       = req.user?.id;
 
+  if (!userId) {
+    return res.status(401).json({ erro: 'Não autenticado' });
+  }
+
   // ── Validação de entrada ──────────────────────────────────
   if (!pergunta || typeof pergunta !== 'string' || !pergunta.trim()) {
     return res.status(400).json({ erro: 'Pergunta não pode ser vazia' });
@@ -257,7 +261,9 @@ async function gerarScript(req, res) {
       return res.status(502).json({ erro: 'IA retornou resposta vazia' });
     }
 
-    console.log('Resposta bruta da IA:', textoResposta);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Resposta bruta da IA:', textoResposta);
+    }
 
     // ── Parse do JSON ─────────────────────────────────────────
     let iaJson;
@@ -284,17 +290,20 @@ async function gerarScript(req, res) {
       return res.status(400).json({ erro: `Erro ao montar consulta: ${buildErr.message}` });
     }
 
-    console.log('SQL gerado:', sql);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('SQL gerado:', sql);
+    }
 
     // ── Executa no banco ──────────────────────────────────────
     let dados = [];
+    let avisoSql = null;
     try {
       const [rows] = await db.query(sql);
       dados = rows;
-      console.log(`Query retornou ${dados.length} registros`);
     } catch (sqlErr) {
       console.error('Erro ao executar SQL:', sqlErr.message);
-      // Não falha o request — retorna SQL sem dados
+      avisoSql = 'A consulta gerada não pôde ser executada no banco de dados';
+      // Não falha o request — retorna SQL sem dados, mas avisa o cliente
     }
 
     // ── Salva no histórico ────────────────────────────────────
@@ -322,6 +331,7 @@ async function gerarScript(req, res) {
     return res.json({
       sql,
       dados,
+      aviso:     avisoSql,
       grafico:   iaJson.grafico   ?? 'barra',
       eixo_x:    iaJson.eixo_x    ?? null,
       eixo_y:    iaJson.eixo_y    ?? null,

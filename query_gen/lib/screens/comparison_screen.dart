@@ -82,7 +82,13 @@ class _ComparisonScreenState extends State<ComparisonScreen> {
     try {
       final data = await ApiService().getHistorico();
       if (!mounted) return;
-      setState(() { _history = data; _loadingHistory = false; });
+      setState(() {
+        _history = data;
+        _loadingHistory = false;
+        if (_selectedA != null) {
+          _similarHistory = _computeSimilar(_selectedA);
+        }
+      });
     } catch (_) {
       if (!mounted) return;
       setState(() => _loadingHistory = false);
@@ -196,11 +202,20 @@ class _ComparisonScreenState extends State<ComparisonScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Selecione dois scripts para comparar',
-              style: TextStyle(
-                  color: AppColors.textOf(context),
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600)),
+          Row(children: [
+            Expanded(
+              child: Text('Selecione dois scripts para comparar',
+                  style: TextStyle(
+                      color: AppColors.textOf(context),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600)),
+            ),
+            IconButton(
+              onPressed: _loadingHistory ? null : _loadHistory,
+              icon: Icon(Icons.refresh, color: AppColors.text2Of(context), size: 20),
+              tooltip: 'Atualizar lista de scripts',
+            ),
+          ]),
           const SizedBox(height: 4),
           Text(
               'Apenas scripts do mesmo tipo de gráfico podem ser comparados. '
@@ -287,8 +302,11 @@ class _ComparisonScreenState extends State<ComparisonScreen> {
                         size: 14, color: AppColors.text3Of(context)),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: Text(item['pergunta'] ?? '',
-                          overflow: TextOverflow.ellipsis, maxLines: 1),
+                      child: Tooltip(
+                        message: item['pergunta'] ?? '',
+                        child: Text(item['pergunta'] ?? '',
+                            overflow: TextOverflow.ellipsis, maxLines: 1),
+                      ),
                     ),
                   ]),
                 );
@@ -338,8 +356,11 @@ class _ComparisonScreenState extends State<ComparisonScreen> {
             ),
             const SizedBox(width: 8),
             Expanded(
-              child: Text(item['pergunta'] ?? '',
-                  overflow: TextOverflow.ellipsis, maxLines: 1),
+              child: Tooltip(
+                message: item['pergunta'] ?? '',
+                child: Text(item['pergunta'] ?? '',
+                    overflow: TextOverflow.ellipsis, maxLines: 1),
+              ),
             ),
           ]),
         ));
@@ -373,8 +394,11 @@ class _ComparisonScreenState extends State<ComparisonScreen> {
                 size: 14, color: AppColors.text3Of(context)),
             const SizedBox(width: 8),
             Expanded(
-              child: Text(item['pergunta'] ?? '',
-                  overflow: TextOverflow.ellipsis, maxLines: 1),
+              child: Tooltip(
+                message: item['pergunta'] ?? '',
+                child: Text(item['pergunta'] ?? '',
+                    overflow: TextOverflow.ellipsis, maxLines: 1),
+              ),
             ),
           ]),
         ));
@@ -512,10 +536,10 @@ class _ComparisonScreenState extends State<ComparisonScreen> {
   Widget _buildSidePanel(
       dynamic item, Map<String, dynamic> data, String side) {
     final dados = List<dynamic>.from(data['dados'] ?? []);
-    final tipoGrafico = data['grafico'] ?? 'barra';
-    final eixoX = data['eixo_x'] as String?;
-    final eixoY = data['eixo_y'] as String?;
-    final descricao = (data['descricao'] ?? item['pergunta'] ?? '') as String;
+    final tipoGrafico = (data['grafico'] ?? 'barra').toString();
+    final eixoX = data['eixo_x']?.toString();
+    final eixoY = data['eixo_y']?.toString();
+    final descricao = (data['descricao'] ?? item['pergunta'] ?? '').toString();
     final borderColor = AppColors.borderOf(context);
     final isA = side == 'A';
 
@@ -548,13 +572,15 @@ class _ComparisonScreenState extends State<ComparisonScreen> {
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: Text(descricao,
-                    style: TextStyle(
-                        color: AppColors.textOf(context),
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis),
+                child: Tooltip(
+                    message: descricao,
+                    child: Text(descricao,
+                        style: TextStyle(
+                            color: AppColors.textOf(context),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis)),
               ),
             ]),
           ),

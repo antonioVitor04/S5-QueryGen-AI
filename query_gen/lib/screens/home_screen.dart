@@ -46,6 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() { _loading = true; _sql = null; _dados = []; });
     try {
       final data = await ApiService().gerarScript(pergunta);
+      if (!mounted) return;
       setState(() {
         _sql         = data['sql'];
         _descricao   = data['descricao'];
@@ -55,6 +56,9 @@ class _HomeScreenState extends State<HomeScreen> {
         _tabelas     = List<String>.from(data['tabelas'] ?? []);
         _dados       = List<dynamic>.from(data['dados']  ?? []);
       });
+      if (data['aviso'] != null) {
+        _showSnack(data['aviso'].toString(), AppColors.amber);
+      }
     } catch (e) {
       _showSnack(e.toString().replaceAll('Exception: ', ''), AppColors.red);
     } finally {

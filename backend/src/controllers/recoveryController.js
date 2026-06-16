@@ -1,9 +1,10 @@
+const crypto = require('crypto');
 const db = require('../db/connection');
 const bcrypt = require('bcrypt');
 const { enviarEmailRecuperacao } = require('../services/emailService');
 
 function gerarToken() {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  return crypto.randomInt(100000, 1000000).toString();
 }
 
 async function solicitarRecuperacao(req, res) {
@@ -11,32 +12,35 @@ async function solicitarRecuperacao(req, res) {
     const { email } = req.body;
     if (!email) return res.status(400).json({ erro: 'E-mail obrigatório' });
 
+    // Limpeza oportunista de tokens expirados/usados, evitando acúmulo
+    // indefinido na tabela.
+    await db.query('DELETE FROM tokens_recuperacao WHERE usado = TRUE OR expira_em < NOW()');
+
     const [rows] = await db.query(
       'SELECT id FROM usuarios WHERE email = ?', [email]
     );
 
-    // Agora retorna erro explícito se email não existir
-    if (rows.length === 0) {
-      return res.status(404).json({ erro: 'E-mail não cadastrado' });
+    // Mensagem genérica independente do e-mail existir ou não, para evitar
+    // que a resposta seja usada para descobrir quais e-mails estão cadastrados.
+    if (rows.length > 0) {
+      const usuario = rows[0];
+      const token   = gerarToken();
+      const expiraEm = new Date(Date.now() + 15 * 60 * 1000);
+
+      await db.query(
+        'UPDATE tokens_recuperacao SET usado = TRUE WHERE user_id = ? AND usado = FALSE',
+        [usuario.id]
+      );
+
+      await db.query(
+        'INSERT INTO tokens_recuperacao (user_id, token, expira_em) VALUES (?, ?, ?)',
+        [usuario.id, token, expiraEm]
+      );
+
+      await enviarEmailRecuperacao(email, token);
     }
 
-    const usuario = rows[0];
-    const token   = gerarToken();
-    const expiraEm = new Date(Date.now() + 15 * 60 * 1000);
-
-    await db.query(
-      'UPDATE tokens_recuperacao SET usado = TRUE WHERE user_id = ? AND usado = FALSE',
-      [usuario.id]
-    );
-
-    await db.query(
-      'INSERT INTO tokens_recuperacao (user_id, token, expira_em) VALUES (?, ?, ?)',
-      [usuario.id, token, expiraEm]
-    );
-
-    await enviarEmailRecuperacao(email, token);
-
-    return res.json({ mensagem: 'Código enviado com sucesso' });
+    return res.json({ mensagem: 'Se o e-mail estiver cadastrado, um código foi enviado' });
 
   } catch (err) {
     console.error('Erro ao solicitar recuperação:', err.message);
@@ -82,15 +86,26 @@ async function verificarToken(req, res) {
 
 async function redefinirSenha(req, res) {
   try {
-    const { tokenId, novaSenha } = req.body;
+    const { email, token, novaSenha } = req.body;
+
+    if (!email || !token) {
+      return res.status(400).json({ erro: 'Solicitação inválida' });
+    }
 
     if (!novaSenha || novaSenha.length < 6) {
       return res.status(400).json({ erro: 'Senha deve ter pelo menos 6 caracteres' });
     }
 
+    // Revalida o par email+token (não confia apenas em um id sequencial),
+    // evitando que um tokenId adivinhado redefina a senha de outro usuário.
     const [rows] = await db.query(
-      'SELECT user_id, expira_em, usado FROM tokens_recuperacao WHERE id = ?',
-      [tokenId]
+      `SELECT t.id, t.user_id, t.expira_em, t.usado
+       FROM tokens_recuperacao t
+       JOIN usuarios u ON u.id = t.user_id
+       WHERE u.email = ? AND t.token = ?
+       ORDER BY t.created_at DESC
+       LIMIT 1`,
+      [email, token]
     );
 
     if (rows.length === 0) {
@@ -116,7 +131,7 @@ async function redefinirSenha(req, res) {
 
     await db.query(
       'UPDATE tokens_recuperacao SET usado = TRUE WHERE id = ?',
-      [tokenId]
+      [registro.id]
     );
 
     return res.json({ mensagem: 'Senha redefinida com sucesso' });

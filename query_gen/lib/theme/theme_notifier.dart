@@ -23,9 +23,10 @@ class ThemeNotifier extends ChangeNotifier {
   }
 
   Future<void> toggle() async {
-    _mode = isDark ? ThemeMode.light : ThemeMode.dark;
+    final newMode = isDark ? ThemeMode.light : ThemeMode.dark;
+    _mode = newMode;
     notifyListeners();
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_key, isDark ? 'dark' : 'light');
+    await prefs.setString(_key, newMode == ThemeMode.dark ? 'dark' : 'light');
   }
 }

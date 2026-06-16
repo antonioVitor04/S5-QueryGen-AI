@@ -53,7 +53,7 @@ class NavBar extends StatelessWidget {
                       width: 36,
                       height: 36,
                       child: Image.asset(
-                        'assets/Logo QueryGen (1).png',
+                        'assets/Logo QueryGen.png',
                         fit: BoxFit.contain,
                       ),
                     ),

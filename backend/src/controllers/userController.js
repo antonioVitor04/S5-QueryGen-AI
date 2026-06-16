@@ -28,6 +28,16 @@ async function updatePerfil(req, res) {
     }
 
     if (foto !== undefined) {
+      if (foto !== null) {
+        const MAX_FOTO_BASE64 = 2_000_000; // ~1.5MB decodificado
+        if (
+          typeof foto !== 'string' ||
+          foto.length > MAX_FOTO_BASE64 ||
+          !/^[A-Za-z0-9+/]+=*$/.test(foto)
+        ) {
+          return res.status(400).json({ erro: 'Foto inválida ou muito grande' });
+        }
+      }
       updates.push('foto = ?');
       values.push(foto);
     }

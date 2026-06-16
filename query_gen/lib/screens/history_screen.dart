@@ -44,7 +44,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         eixoX: data['eixo_x'], eixoY: data['eixo_y'],
         descricao: data['descricao'] ?? item['pergunta'] ?? '',
       )));
-    } catch (e) {
+    } catch (_) {
       _showSnack('Erro ao carregar dados', AppColors.red);
     } finally {
       if (mounted) setState(() => _loadingId = null);
@@ -63,11 +63,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   String _formatDate(String? raw) {
-    if (raw == null) return '';
+    if (raw == null || raw.isEmpty) return '';
     try {
       final dt = DateTime.parse(raw).toLocal();
       return '${dt.day.toString().padLeft(2,'0')}/${dt.month.toString().padLeft(2,'0')}/${dt.year}  ${dt.hour.toString().padLeft(2,'0')}:${dt.minute.toString().padLeft(2,'0')}';
-    } catch (_) { return raw; }
+    } catch (_) { return 'Data desconhecida'; }
   }
 
   void _showSnack(String msg, Color color) {
@@ -158,13 +158,17 @@ class _HistoryScreenState extends State<HistoryScreen> {
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 14, 8, 0),
           child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Expanded(child: Text(item['pergunta'] ?? '',
-                style: TextStyle(color: AppColors.textOf(context),
-                    fontSize: 13, fontWeight: FontWeight.w600, height: 1.4),
-                maxLines: 2, overflow: TextOverflow.ellipsis)),
+            Expanded(child: Tooltip(
+                message: item['pergunta'] ?? '',
+                child: Text(item['pergunta'] ?? '',
+                    style: TextStyle(color: AppColors.textOf(context),
+                        fontSize: 13, fontWeight: FontWeight.w600, height: 1.4),
+                    maxLines: 2, overflow: TextOverflow.ellipsis))),
             IconButton(
               icon: Icon(Icons.delete_outline, color: AppColors.text3Of(context), size: 18),
-              padding: EdgeInsets.zero, constraints: const BoxConstraints(),
+              tooltip: 'Excluir',
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
               onPressed: () => _confirmDelete(item['id']),
             ),
           ]),

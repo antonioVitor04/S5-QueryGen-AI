@@ -5,9 +5,9 @@ import 'package:http/http.dart' as http;
 import 'auth_service.dart';
 
 class ApiService {
-  // ── Troca o IP aqui quando mudar de rede ──────────────────────
-  static const _ipLocal = '10.2.0.135';
-  static const _porta   = '3005';
+  // ── IP/porta configuráveis via --dart-define=API_IP=... --dart-define=API_PORT=...
+  static const _ipLocal = String.fromEnvironment('API_IP', defaultValue: '10.2.0.135');
+  static const _porta   = String.fromEnvironment('API_PORT', defaultValue: '3005');
 
   static String get _base => kIsWeb
       ? 'http://localhost:$_porta'
@@ -205,11 +205,11 @@ class ApiService {
     return _parse(res);
   }
 
-  Future<void> redefinirSenha(int tokenId, String novaSenha) async {
+  Future<void> redefinirSenha(String email, String token, String novaSenha) async {
     final res = await _post(
       Uri.parse('$_base/recovery/redefinir'),
       headers: _jsonHeaders,
-      body: jsonEncode({'tokenId': tokenId, 'novaSenha': novaSenha}),
+      body: jsonEncode({'email': email, 'token': token, 'novaSenha': novaSenha}),
     );
     _parse(res);
   }

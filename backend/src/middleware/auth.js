@@ -13,7 +13,8 @@ function authMiddleware(req, res, next) {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded; // { id, email } ficam disponíveis nos controllers
     next();
-  } catch {
+  } catch (err) {
+    console.error('Erro de autenticação JWT:', err.message);
     return res.status(401).json({ erro: 'Token inválido ou expirado' });
   }
 }

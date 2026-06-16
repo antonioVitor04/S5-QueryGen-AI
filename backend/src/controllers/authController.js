@@ -6,7 +6,7 @@ async function register(req, res) {
   try {
     const { email, senha, nome } = req.body;
 
-    if (!email || !senha) {
+    if (typeof email !== 'string' || typeof senha !== 'string' || !email.trim() || !senha) {
       return res.status(400).json({ erro: 'Email e senha são obrigatórios' });
     }
 
@@ -30,6 +30,10 @@ async function register(req, res) {
 async function login(req, res) {
   try {
     const { email, senha } = req.body;
+
+    if (typeof email !== 'string' || typeof senha !== 'string' || !email.trim() || !senha) {
+      return res.status(400).json({ erro: 'Email e senha são obrigatórios' });
+    }
 
     const [rows] = await db.query(
       'SELECT id, email, nome, senha_hash FROM usuarios WHERE email = ?',

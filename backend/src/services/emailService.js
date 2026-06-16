@@ -1,9 +1,9 @@
 const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 465,
-  secure: true,
+  host:   process.env.EMAIL_HOST || 'smtp.gmail.com',
+  port:   parseInt(process.env.EMAIL_PORT, 10) || 465,
+  secure: process.env.EMAIL_SECURE !== 'false',
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
@@ -19,8 +19,7 @@ transporter.verify((error) => {
 });
 
 async function enviarEmailRecuperacao(emailDestino, token) {
-  console.log('Enviando email para:', emailDestino);
-  console.log('Token gerado:', token);
+  console.log('Enviando email de recuperação para:', emailDestino);
 
   await transporter.sendMail({
     from: `"QueryGen AI" <${process.env.EMAIL_USER}>`,

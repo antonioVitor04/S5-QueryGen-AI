@@ -4,6 +4,7 @@ import '../theme/theme_notifier.dart';
 import '../main.dart';
 import '../services/api_service.dart';
 import '../utils/routes.dart';
+import '../utils/responsive.dart';
 import 'login_screen.dart';
 import '../widgets/graphics/activity_bars_widget.dart';
 import '../widgets/graphics/bar_chart_widget.dart';
@@ -24,7 +25,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   bool   _obscure1 = true;
   bool   _obscure2 = true;
   String _email    = '';
-  int    _tokenId  = 0;
+  String _token    = '';
 
   final _emailController   = TextEditingController();
   final _tokenController   = TextEditingController();
@@ -71,8 +72,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Color get _strengthColor {
     if (_senhaController.text.isEmpty) return AppColors.border;
     if (_strengthScore <= 1) return AppColors.red;
-    if (_strengthScore == 2) return const Color(0xFFE6A817);
-    if (_strengthScore == 3) return const Color(0xFF4FC3F7);
+    if (_strengthScore == 2) return AppColors.amber;
+    if (_strengthScore == 3) return AppColors.accent2;
     return AppColors.green;
   }
 
@@ -91,8 +92,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       } else if (_step == 1) {
         final codigo = _tokenController.text.trim();
         if (codigo.isEmpty) throw Exception('Insira o código');
-        final data = await api.verificarToken(_email, codigo);
-        _tokenId = data['tokenId'];
+        await api.verificarToken(_email, codigo);
+        _token = codigo;
         setState(() => _step = 2);
       } else {
         final nova    = _senhaController.text.trim();
@@ -102,7 +103,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         if (!RegExp(r'[0-9]').hasMatch(nova)) throw Exception('A senha deve conter pelo menos um número');
         if (!RegExp(r'[!@#$%^&*()_+\-=\[\]{};:"\\|,.<>/?]').hasMatch(nova)) throw Exception('A senha deve conter pelo menos um caractere especial');
         if (nova != confirm) throw Exception('As senhas não coincidem');
-        await api.redefinirSenha(_tokenId, nova);
+        await api.redefinirSenha(_email, _token, nova);
         if (!mounted) return;
         _showSnack('Senha redefinida com sucesso!', AppColors.green);
         Navigator.pushAndRemoveUntil(context, fadeRoute(const LoginScreen()), (_) => false);
@@ -125,8 +126,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isDesktop = screenWidth > 1100;
+    final isDesktop = Responsive.isDesktop(context);
     final ThemeNotifier notifier = MyApp.of(context);
     final bool isDark = notifier.isDark;
 
@@ -184,7 +184,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       children: [
         SizedBox(
           width: 90, height: 90,
-          child: Image.asset('assets/Logo QueryGen (1).png', fit: BoxFit.contain),
+          child: Image.asset('assets/Logo QueryGen.png', fit: BoxFit.contain),
         ),
         const SizedBox(height: 6),
         RichText(
@@ -315,13 +315,16 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         const SizedBox(height: 20),
         GestureDetector(
           onTap: () => _step > 0 ? setState(() => _step--) : Navigator.pop(context),
-          child: Row(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(Icons.arrow_back, color: AppColors.text3Of(context), size: 14),
               const SizedBox(width: 6),
               Text('Voltar', style: TextStyle(color: AppColors.text3Of(context), fontSize: 13)),
             ],
+          ),
           ),
         ),
       ],
@@ -389,6 +392,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             filled: true, fillColor: AppColors.surfaceOf(context),
             suffixIcon: IconButton(
               icon: Icon(obscure ? Icons.visibility_off : Icons.visibility, color: AppColors.text3Of(context), size: 20),
+              tooltip: obscure ? 'Mostrar senha' : 'Ocultar senha',
               onPressed: onToggle,
             ),
           ),

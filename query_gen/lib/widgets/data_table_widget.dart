@@ -22,7 +22,11 @@ class DataTableWidget extends StatelessWidget {
             style: TextStyle(color: AppColors.text2Of(context))),
       );
     }
-    final colunas = primeiro.keys.toList();
+    final linhas = dados.take(100);
+    final colunas = <String>{};
+    for (final row in linhas) {
+      if (row is Map) colunas.addAll(row.keys.map((k) => k.toString()));
+    }
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -51,13 +55,13 @@ class DataTableWidget extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
         ),
         columns: colunas.map((col) =>
-          DataColumn(label: Text(col.toString())),
+          DataColumn(label: Text(col)),
         ).toList(),
-        rows: dados.take(100).map((row) =>
+        rows: linhas.map((row) =>
           DataRow(
             cells: colunas.map((col) =>
               DataCell(Text(
-                row[col]?.toString() ?? '—',
+                row is Map ? (row[col]?.toString() ?? '—') : '—',
               )),
             ).toList(),
           ),

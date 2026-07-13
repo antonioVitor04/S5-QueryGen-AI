@@ -71,26 +71,26 @@ Requisitos:
     . IDE (VS Code recomendado)
 
 Execução:
-    1. Clone o repositório                          | git clone https://github.com/antonioVitor04/S5-QueryGen-AI
+    1. Clone o repositório                | git clone https://github.com/antonioVitor04/S5-QueryGen-AI
 
-    2. Navegue até o diretório do projeto           | cd S5-QueryGen-AI
+    2. Navegue até o diretório do projeto | cd S5-QueryGen-AI
 
-    3. Instale as dependências do backend           | cd backend
-                                                    | npm install
+    3. Instale as dependências do backend | cd backend
+                                          | npm install
 
-    4. Configure as variáveis de ambiente           | PORT=3000
-                                                    | DB_HOST=localhost
-                                                    | DB_USER=root
-                                                    | DB_PASSWORD=sua_senha
-                                                    | DB_NAME=nome-do-banco
-                                                    | JWT_SECRET=sua_chave_secreta
+    4. Configure as variáveis de ambiente | PORT=3000
+                                          | DB_HOST=localhost
+                                          | DB_USER=root
+                                          | DB_PASSWORD=sua_senha
+                                          | DB_NAME=nome-do-banco
+                                          | JWT_SECRET=sua_chave_secreta
 
-    5. Inicialize o backend                         | cd backend
-                                                    | npm run dev
+    5. Inicialize o backend               | cd backend
+                                          | npm run dev
 
-    6. Execute o frontend (Flutter)                 | cd query_gen
-                                                    | flutter pub get
-                                                    | flutter run
+    6. Execute o frontend (Flutter)       | cd query_gen
+                                          | flutter pub get
+                                          | flutter run
 ```
 
 
